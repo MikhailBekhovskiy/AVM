@@ -1,7 +1,13 @@
 class Monom():
-    def __init__(self, vardegs: dict(), coeff=1.):
+    def __init__(self, vardegs=dict(), coeff=1.):
         self.vars = vardegs
         self.coef = coeff
+
+    def copy(self):
+        m = Monom(coeff=self.coef)
+        for v in self.vars:
+            m[v] = self.vars[v]
+        return m
 
     def __str__(self):
         res = ''
@@ -27,6 +33,8 @@ def isSimilar(m1: Monom, m2: Monom):
 
 def multiplyM(m1:Monom, m2:Monom):
     m3 = Monom(coeff = m1.coef * m2.coef, vardegs=dict())
+    if m3.coef == 0.:
+        return m3
     for var in m1.vars:
         m3.vars[var] = m1.vars[var]
     for var in m2.vars:
@@ -85,9 +93,14 @@ def parseM(inp: str()) -> Monom:
     return m
 
 class Polynom():
-    def __init__(self, monoms: list()):
+    def __init__(self, monoms=list()):
         self.mons = monoms
 
+    def copy(self):
+        p = Polynom()
+        for m in self.mons:
+            p.mons.append(m.copy())
+        return p
 
     def __str__(self):
         res = ''
@@ -99,24 +112,45 @@ class Polynom():
             res = res[1:]
         return res
 
-
     def simplify(self):
         p1 = Polynom(monoms=[])
         for m in self.mons:
-            added = False
-            for j in range(len(p1.mons)):
-                if isSimilar(m, p1.mons[j]):
-                    p1.mons[j].coef += m.coef
-                    added = True
-            if not added:
-                p1.mons.append(m)
+            if m.coef == 0.:
+                continue
+            found = False
+            j = 0
+            while j < len(p1.mons) and not found:
+                found = isSimilar(m, p1.mons[j])
+                j += 1
+            if not found:
+                p1.mons.append(m.copy())
+            else:
+                p1.mons[j-1].coef += m.coef
+                if p1.mons[j-1].coef == 0.:
+                    p1.mons = p1.mons[:j-1] + p1.mons[j:]
+        if p1.mons == []:
+            p1.mons.append(Monom(coeff=0.))
         return p1
 
+    def negate(self):
+        p = self.copy()
+        for i in range(len(p.mons)):
+            p.mons[i].coef *= -1
+        return p
+
+def addP(p1: Polynom, p2: Polynom):
+    p3 = Polynom(monoms = p1.copy().mons + p2.copy().mons)
+    return p3.simplify()
+
+def subP(p1:Polynom, p2:Polynom):
+    p = p2.negate()
+    return addP(p1, p)
+    
 
 def multiplyP(p1: Polynom, p2: Polynom):
     p3 = Polynom(monoms=[])
-    for m1 in p1:
-        for m2 in p2:
+    for m1 in p1.mons:
+        for m2 in p2.mons:
             p3.mons.append(multiplyM(m1,m2))
     return p3.simplify()
     
@@ -137,9 +171,3 @@ def parseP(inp: str())->Polynom:
             i += 1
         p.mons.append(parseM(buf))
     return p
-
-
-ex = 'x*y^10*z^6 + x^5*z'
-
-p = parseP(ex)
-print(p)
