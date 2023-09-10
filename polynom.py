@@ -4,9 +4,9 @@ class Monom():
         self.coef = coeff
 
     def copy(self):
-        m = Monom(coeff=self.coef)
+        m = Monom(coeff=self.coef, vardegs=dict())
         for v in self.vars:
-            m[v] = self.vars[v]
+            m.vars[v] = self.vars[v]
         return m
 
     def __str__(self):
@@ -93,16 +93,19 @@ def parseM(inp: str()) -> Monom:
     return m
 
 class Polynom():
-    def __init__(self, monoms=list()):
+    def __init__(self, monoms=[]):
         self.mons = monoms
 
     def copy(self):
-        p = Polynom()
+        p = Polynom(monoms=[])
         for m in self.mons:
-            p.mons.append(m.copy())
+            tmp = m.copy()
+            p.mons.append(tmp)
         return p
 
     def __str__(self):
+        if self.mons == []:
+            return '0'
         res = ''
         for m in self.mons:
             if m.coef > 0.:
@@ -139,6 +142,10 @@ class Polynom():
         return p
 
 def addP(p1: Polynom, p2: Polynom):
+    if p1.mons == []:
+        return p2.copy()
+    if p2.mons == []:
+        return p1.copy()
     p3 = Polynom(monoms = p1.copy().mons + p2.copy().mons)
     return p3.simplify()
 
@@ -146,14 +153,12 @@ def subP(p1:Polynom, p2:Polynom):
     p = p2.negate()
     return addP(p1, p)
     
-
 def multiplyP(p1: Polynom, p2: Polynom):
     p3 = Polynom(monoms=[])
     for m1 in p1.mons:
         for m2 in p2.mons:
             p3.mons.append(multiplyM(m1,m2))
     return p3.simplify()
-    
 
 def parseP(inp: str())->Polynom:
     i = 0
@@ -171,3 +176,29 @@ def parseP(inp: str())->Polynom:
             i += 1
         p.mons.append(parseM(buf))
     return p
+
+# scaffolded for dependent variables case. currently working only for independent
+def derM(m: Monom, v: str(), deps=dict()) -> Polynom:
+    p = Polynom(monoms = [])
+    for var in m.vars:
+        if var != v and var not in deps:
+            continue
+        else:
+            if var in deps and v in deps[var]:
+                pass
+            else:
+                tmp = m.copy()
+                tmp.coef *= tmp.vars[var]
+                tmp.vars[var] -= 1
+                if tmp.vars[var] == 0:
+                    del tmp.vars[var]
+                p.mons.append(tmp)
+    return p.simplify()
+
+def derP(p:Polynom, v:str(), deps=dict()) -> Polynom:
+    r = Polynom(monoms=[])
+    for m in p.mons:
+        d = derM(m,v,deps)
+        tmp = addP(r, d)
+        r = tmp
+    return r.simplify()
