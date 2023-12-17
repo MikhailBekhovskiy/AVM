@@ -1,204 +1,197 @@
-class Monom():
-    def __init__(self, vardegs=dict(), coeff=1.):
-        self.vars = vardegs
-        self.coef = coeff
+# this is a reworked polynomial module
+# storing variables by names and ids and separating them from power in polynomials, thus
+# reducing redundancy;
+# power derivative calculation is at monomial level, chaining with variable derivatives stored in memory;
+# variable derivatives are either taken from input system
+# or calculated at introducing additional variables step using stored library info;
+# independent variable derivative is 1 or 0
+# dependent variable derivative is stored as dependency and is simply read
 
-    def copy(self):
-        m = Monom(coeff=self.coef, vardegs=dict())
-        for v in self.vars:
-            m.vars[v] = self.vars[v]
-        return m
+class Var():
+    # variable is denoted by:
+    # name (for output purposes); name MUST be always given
+    # dependencies dict (derivative substitutions for chain-rule calculations); might be empty if variable is independent;
+    # global_var_dict MUST be supplied; after creation variable is stored there keyed by unique integer id;
+    # global_var_dict is used for output and MOST IMPORTANTLY for derivative calculations on polynomial and monomial levels
+    # this allows to avoid storing multiple instances of the same variable
+    def __init__(self, global_var_dict: dict, var_name: str, var_deps=dict()):
+        self.name = var_name
+        var_id = len(global_var_dict) + 1
+        # dictionary which contains polynomial derivatives by independent variables 
+        # in case of additional variables it contains polynomial derivatives ONLY
+        # (which get calculated with respect to the system at substitution step)
+        # in case of input system variables it contains RHS strings which get replaced 
+        # by Polynomials as algorithm transforms them 
+        self.deps = var_deps
+        self.deps[var_id] = Polynomial(mon_list=[Monomial(mon_coeff=1)])
+        global_var_dict[var_id] = self
 
-    def __str__(self):
-        res = ''
-        if self.coef == -1.:
-            res += '-'
-        elif self.coef != 1.:
-            res += str(self.coef)
-            res += '*'
-        for var in self.vars:
-            res += var
-            if self.vars[var] != 1:
-                res += f'^{self.vars[var]}'
-            res += '*'
-        res = res[:len(res)-1]
-        return res
-    
-
-def isSimilar(m1: Monom, m2: Monom):
-    for var in m1.vars:
-        if var not in m2.vars or m2.vars[var] != m1.vars[var]:
-            return False
-    return True
-
-def multiplyM(m1:Monom, m2:Monom):
-    m3 = Monom(coeff = m1.coef * m2.coef, vardegs=dict())
-    if m3.coef == 0.:
-        return m3
-    for var in m1.vars:
-        m3.vars[var] = m1.vars[var]
-    for var in m2.vars:
-        if var in m3.vars:
-            m3.vars[var] += m2.vars[var]
-        else:
-            m3.vars[var] = m2.vars[var]
-    return m3
-
-def parseM(inp: str()) -> Monom:
-    i = 0
-    coef = ''
-    if inp[i] == '-':
-        coef += '-'
-        i += 1
-    if inp[i] < 'A':
-        while i < len(inp) and inp[i] != '*':
-            coef += inp[i]
-            i += 1
-        i += 1
-        m = Monom(coeff=float(coef), vardegs=dict())
-        if i >= len(inp):
-            return m
-    else:
-        m = Monom(coeff=1., vardegs=dict())
-        if coef == '-':
-            m.coef = -1.
-    while i < len(inp):
-        varname = ''
-        deg = ''
-        while i < len(inp) and inp[i] != '^' and inp[i] != '*':
-            varname += inp[i]
-            i += 1
-        if i >= len(inp):
-            if varname in m.vars:
-                m.vars[varname] += 1
+    # should return Poly or 0
+    # auxiliary method for calculating polynomial's derivatives during transformations and introduction of new variables
+    # to expand the system with additional variable derivatives the next method is used instead (Var.complete_derivative)
+    # TODO distinguish additional variables (chain rule derivatives calling Polynomial arguments derivatives)
+    def derivative(self, var_id):
+        if var_id in self.deps:
+            der = self.deps[var_id]
+            if type(der) == Polynomial:
+                return self.deps[var_id]
             else:
-                m.vars[varname] = 1
-            return m
-        if inp[i] == '*':
-            if varname in m.vars:
-                m.vars[varname] += 1
-            else:
-                m.vars[varname] = 1
-            i += 1
-        if inp[i] == '^':
-            i += 1
-            while i < len(inp) and inp[i] != '*':
-                deg += inp[i]
-                i += 1
-            i += 1
-            if varname in m.vars:
-                m.vars[varname] += int(deg)
-            else:
-                m.vars[varname] = int(deg)
-    return m
-
-class Polynom():
-    def __init__(self, monoms=[]):
-        self.mons = monoms
-
-    def copy(self):
-        p = Polynom(monoms=[])
-        for m in self.mons:
-            tmp = m.copy()
-            p.mons.append(tmp)
-        return p
-
-    def __str__(self):
-        if self.mons == []:
-            return '0'
-        res = ''
-        for m in self.mons:
-            if m.coef > 0.:
-                res += '+'
-            res += str(m)
-        if res[0] == '+':
-            res = res[1:]
-        return res
-
-    def simplify(self):
-        p1 = Polynom(monoms=[])
-        for m in self.mons:
-            if m.coef == 0.:
-                continue
-            found = False
-            j = 0
-            while j < len(p1.mons) and not found:
-                found = isSimilar(m, p1.mons[j])
-                j += 1
-            if not found:
-                p1.mons.append(m.copy())
-            else:
-                p1.mons[j-1].coef += m.coef
-                if p1.mons[j-1].coef == 0.:
-                    p1.mons = p1.mons[:j-1] + p1.mons[j:]
-        if p1.mons == []:
-            p1.mons.append(Monom(coeff=0.))
-        return p1
-
-    def negate(self):
-        p = self.copy()
-        for i in range(len(p.mons)):
-            p.mons[i].coef *= -1
-        return p
-
-def addP(p1: Polynom, p2: Polynom):
-    if p1.mons == []:
-        return p2.copy()
-    if p2.mons == []:
-        return p1.copy()
-    p3 = Polynom(monoms = p1.copy().mons + p2.copy().mons)
-    return p3.simplify()
-
-def subP(p1:Polynom, p2:Polynom):
-    p = p2.negate()
-    return addP(p1, p)
-    
-def multiplyP(p1: Polynom, p2: Polynom):
-    p3 = Polynom(monoms=[])
-    for m1 in p1.mons:
-        for m2 in p2.mons:
-            p3.mons.append(multiplyM(m1,m2))
-    return p3.simplify()
-
-def parseP(inp: str())->Polynom:
-    i = 0
-    p = Polynom(monoms=[])
-    while i < len(inp):
-        buf = ''
-        if inp[i] == '-':
-            buf += '-'
-            i += 1
-        if inp[i] == '+':
-            i += 1
-        while i < len(inp) and inp[i] != '+' and inp[i] != '-':
-            if inp[i] != ' ':
-                buf += inp[i]
-            i += 1
-        p.mons.append(parseM(buf))
-    return p
-
-# scaffolded for dependent variables case. currently working only for independent
-def derM(m: Monom, v: str(), deps=dict()) -> Polynom:
-    p = Polynom(monoms = [])
-    for var in m.vars:
-        if var != v and var not in deps:
-            continue
-        else:
-            if var in deps and v in deps[var]:
+                # TODO create temporary variable in place of system equation RHS;
+                # it gets substituted at end of algorithm, when all RHS are Polynomial
                 pass
-            else:
-                tmp = m.copy()
-                tmp.coef *= tmp.vars[var]
-                tmp.vars[var] -= 1
-                if tmp.vars[var] == 0:
-                    del tmp.vars[var]
-                p.mons.append(tmp)
-    return p.simplify()
+        else:
+            return 0
+        
+    # TODO function for library variables to expand their dependencies dict after substitution
+    # calculate the complete derivative by independent variable with respect to system
+    # var_id MUST be id of system variable (either original or introduced at previous steps)
+    # global_var_dict and sublibrary dict MUST be supplied
+    def complete_derivative(self, var_id: int, sublibrary: dict, global_var_dict: dict):
+        pass
 
-def derP(p:Polynom, v:str(), deps=dict()) -> Polynom:
-    r = Polynom(monoms=[])
-    for m in p.mons:
-        d = derM(m,v,deps)
-        tmp = addP(r, d)
-        r = tmp
-    return r.simplify()
+
+class Monomial():
+    # monomial is denoted by:
+    # coefficient (single real number)
+    # vars dict (dictionary keyed by var_ids with powers as values) for hierarchical calculations using Var subclass
+    # signature (string containing sorted var ids and their powers; for fast similarity check during arithmetics)
+    def __init__(self, mon_coeff: float, var_pow_list=[]):
+        self.coef = mon_coeff
+        self.vars = dict()
+
+        var_pow_list.sort(key=lambda x:x[0])
+        
+        self.signature = ''
+        for var in var_pow_list:
+            self.signature += str(var[0]) + str(var[1])
+            self.vars[var[0]] = var[1]
+
+
+    # called when normalizing poly after arithmetic or differentiation
+    def add_similar(self, mon):
+        if self.signature == mon.signature:
+            new_coef = self.coef + mon.coef
+            if new_coef != 0:
+                return Monomial(mon_coeff=new_coef, var_pow_list=self.vars.copy())
+            return 0
+        else:
+            return 'Bug. This addition shouldn\'t have happened'
+        
+    def scalar_prod(self, a: float):
+        coef = a * self.coef
+        var_pow_list = list(self.vars.items())
+        return Monomial(coef, var_pow_list)
+    
+    def prod(self, mon):
+        new_coef = self.coef * mon.coef
+        var_pow_list = []
+        for var in self.vars:
+            var_pow = self.vars[var]
+            if var in mon.vars:
+                var_pow += mon.vars[var]
+            var_pow_list.append((var, var_pow))
+        for var in mon.vars:
+            if var not in self.vars:
+                var_pow_list.append((var, mon.vars[var]))
+        return Monomial(new_coef, var_pow_list)
+    
+
+    # should return Poly or 0
+    # it is a COMPLETE derivative with respect to input system 
+    # and their derivatives. compatibility stems from Var class support
+    # for introducing temporary variables instead of yet untransformed RHSs
+    def derivative(self, var_id: int, global_var_dict: dict()):
+        result = Polynomial()
+        for var in self.vars:
+            var_der = global_var_dict[var].derivative(var_id)
+            # var_der is either Poly or 0; 0 is ignored, Poly case added to result
+            if var_der != 0:
+                # create Poly from remaining Mono part
+                rem_var_pow_list = []
+                rem_coef = 1
+                if self.vars[var] > 1:
+                    rem_var_pow_list.append((var, self.vars[var] - 1))
+                    rem_coef = self.vars[var]
+                for var1 in self.vars:
+                    if var1 != var:
+                        rem_var_pow_list.append((var1, self.vars[var1]))
+                
+                rem = Polynomial([Monomial(mon_coeff=rem_coef, var_pow_list=rem_var_pow_list)])
+                # add to the result production of variable derivative and remainder of monomial
+                result = result.add(var_der.prod(rem))
+        if len(result.mons) > 0:
+            return result.scalar_prod(self.coef)
+        return 0
+    
+    # for output
+    def printout(self, global_var_dict):
+        result = f'{self.coef} * '
+        for var in self.vars:
+            power = self.vars[var]
+            name = global_var_dict[var].name
+            result += f'{name}^{pow} * '
+        return result[:len(result) - 2]
+
+
+class Polynomial():
+    # Polynomial is simply a list of monomials (so its always normalized)
+    # denoted by dict keyed by monomials signatures (for arithmetic purposes) with Monomial values
+    # normalization occurs during substitution immediately
+    def __init__(self, mon_list=[]):
+        self.mons = dict()
+        for mon in mon_list:
+            self.mons[mon.signature] = mon
+
+    # multivariate polynomial arithmetics
+    # returns normalized polynomial
+    def add(self, poly):
+        if poly == 0:
+            return self
+        else:
+            mon_list = []
+            for mon in self.mons:
+                if mon in poly.mons:
+                    mon_list.append(self.mons[mon].add_similar(poly.mons[mon]))
+                else:
+                    mon_list.append(self.mons[mon])
+            for mon in poly.mons:
+                if mon not in self.mons:
+                    mon_list.append(poly.mons[mon])
+            return Polynomial(mon_list)
+    
+    def scalar_prod(self, a: float):
+        mon_list = []
+        for mon in self.mons:
+            mon_list.append(self.mons[mon].scalar_prod(a))
+        return Polynomial(mon_list)
+
+    def prod(self, poly):
+        result = Polynomial()
+        for mon1 in self.mons:
+            for mon2 in poly.mons:
+                new_mon = self.mons[mon1].prod(poly.mons[mon2])
+                new_sign = new_mon.signature
+                if new_sign in result.mons:
+                    result.mons[new_sign] = result.mons[new_sign].add_similar(new_mon)
+                else:
+                    result.mons[new_sign] = new_mon
+        return result
+
+    # derivative of a polynomial is simply the sum of it's monomial's derivatives
+    def derivative(self, var_id, global_var_dict):
+        result = Polynomial([])
+        for mon in self.mons:
+            result = result.add(self.mons[mon].derivative(var_id, global_var_dict))
+        return result
+
+    # output
+    def printout(self, global_var_dict: dict):
+        result = ''
+        for mon in self.mons:
+            mono = self.mons[mon]
+            if mono.coef > 0:
+                result += '+'
+            result += mono.printout(global_var_dict)
+        if result[0] == '+':
+            return result[1:]
+        return result
