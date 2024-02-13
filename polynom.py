@@ -1,5 +1,5 @@
 # this is a reworked polynomial module
-# storing variables by names and ids and separating them from power in polynomials, thus
+# storing variables by names and separating them from power in polynomials, thus
 # reducing redundancy;
 # power derivative calculation is at monomial level, chaining with variable derivatives stored in memory;
 # variable derivatives are either taken from input system
@@ -11,30 +11,28 @@ class Var():
     # variable is denoted by:
     # name (for output purposes); name MUST be always given
     # dependencies dict (derivative substitutions for chain-rule calculations); might be empty if variable is independent;
-    # global_var_dict MUST be supplied; after creation variable is stored there keyed by unique integer id;
+    # global_var_dict MUST be supplied; after creation variable is stored there keyed by name;
     # global_var_dict is used for output and MOST IMPORTANTLY for derivative calculations on polynomial and monomial levels
     # this allows to avoid storing multiple instances of the same variable
     def __init__(self, global_var_dict: dict, var_name: str, var_deps=dict()):
         self.name = var_name
-        var_id = len(global_var_dict) + 1
         # dictionary which contains polynomial derivatives by independent variables 
         # in case of additional variables it contains polynomial derivatives ONLY
         # (which get calculated with respect to the system at substitution step)
         # in case of input system variables it contains RHS strings which get replaced 
         # by Polynomials as algorithm transforms them 
         self.deps = var_deps
-        self.deps[var_id] = Polynomial(mon_list=[Monomial(mon_coeff=1)])
-        global_var_dict[var_id] = self
+        self.deps[var_name] = Polynomial(mon_list=[Monomial(mon_coeff=1)])
+        global_var_dict[var_name] = self
 
     # should return Poly or 0
     # auxiliary method for calculating polynomial's derivatives during transformations and introduction of new variables
     # to expand the system with additional variable derivatives the next method is used instead (Var.complete_derivative)
-    # TODO distinguish additional variables (chain rule derivatives calling Polynomial arguments derivatives)
-    def derivative(self, var_id):
-        if var_id in self.deps:
-            der = self.deps[var_id]
+    def derivative(self, var_name):
+        if var_name in self.deps:
+            der = self.deps[var_name]
             if type(der) == Polynomial:
-                return self.deps[var_id]
+                return self.deps[var_name]
             else:
                 # TODO create temporary variable in place of system equation RHS;
                 # it gets substituted at end of algorithm, when all RHS are Polynomial
@@ -44,17 +42,17 @@ class Var():
         
     # TODO function for library variables to expand their dependencies dict after substitution
     # calculate the complete derivative by independent variable with respect to system
-    # var_id MUST be id of system variable (either original or introduced at previous steps)
+    # var_name MUST be name of system variable (either original or introduced at previous steps)
     # global_var_dict and sublibrary dict MUST be supplied
-    def complete_derivative(self, var_id: int, sublibrary: dict, global_var_dict: dict):
+    def complete_derivative(self, var_name: str, sublibrary: dict, global_var_dict: dict):
         pass
 
 
 class Monomial():
     # monomial is denoted by:
     # coefficient (single real number)
-    # vars dict (dictionary keyed by var_ids with powers as values) for hierarchical calculations using Var subclass
-    # signature (string containing sorted var ids and their powers; for fast similarity check during arithmetics)
+    # vars dict (dictionary keyed by var_names with powers as values) for hierarchical calculations using Var subclass
+    # signature (string containing sorted var names and their powers; for fast similarity check during arithmetics)
     def __init__(self, mon_coeff: float, var_pow_list=[]):
         self.coef = mon_coeff
         self.vars = dict()
@@ -100,10 +98,10 @@ class Monomial():
     # it is a COMPLETE derivative with respect to input system 
     # and their derivatives. compatibility stems from Var class support
     # for introducing temporary variables instead of yet untransformed RHSs
-    def derivative(self, var_id: int, global_var_dict: dict()):
+    def derivative(self, var_name: str, global_var_dict: dict):
         result = Polynomial()
         for var in self.vars:
-            var_der = global_var_dict[var].derivative(var_id)
+            var_der = global_var_dict[var].derivative(var_name)
             # var_der is either Poly or 0; 0 is ignored, Poly case added to result
             if var_der != 0:
                 # create Poly from remaining Mono part
@@ -128,8 +126,7 @@ class Monomial():
         result = f'{self.coef} * '
         for var in self.vars:
             power = self.vars[var]
-            name = global_var_dict[var].name
-            result += f'{name}^{pow} * '
+            result += f'{var}^{power} * '
         return result[:len(result) - 2]
 
 
@@ -178,10 +175,10 @@ class Polynomial():
         return result
 
     # derivative of a polynomial is simply the sum of it's monomial's derivatives
-    def derivative(self, var_id, global_var_dict):
+    def derivative(self, var_name: str, global_var_dict: dict):
         result = Polynomial([])
         for mon in self.mons:
-            result = result.add(self.mons[mon].derivative(var_id, global_var_dict))
+            result = result.add(self.mons[mon].derivative(var_name, global_var_dict))
         return result
 
     # output
