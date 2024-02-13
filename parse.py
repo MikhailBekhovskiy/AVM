@@ -1,4 +1,9 @@
 from polynom import *
+# TODO 
+# read all basic variables from input system;
+# import regex and implement func finding
+# connections to global_var_dict 
+
 
 def parse_num(st: str, start: int) -> tuple[float, int]:
     res = ''
