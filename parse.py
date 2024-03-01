@@ -13,12 +13,14 @@ def parse_num(st: str, start: int) -> tuple[float, int]:
         i += 1
     return float(res), i
 
-def parse_name(st: str, start: int) -> tuple[str, int]:
+def parse_name(st: str, start: int, global_var_dict: dict) -> tuple[str, int]:
     res = st[start]
     i = start
     while st[i] != '^' and st[i] != '*' and st[i] != ' ' and i < len(st):
         res += st[i]
         i += 1
+    if res not in global_var_dict:
+        global_var_dict[res] = Var(global_var_dict, res)
     return res, i
 
 def parse_mon(st: str, start: int, is_positive: bool) -> tuple[Monomial, int]:

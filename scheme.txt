@@ -1,0 +1,64 @@
+The main computational module provides polynomial algebra and differentiation.
+Polynoms are defined as hierarchical structures (variables -> (*, ^) -> monomials -> (+, -) -> polynomials)
+
+This dictionary contains all the variables used during operation, indexed by name
+global_var_dict = {
+    var_name: Var(),
+    .....
+}
+
+The basic class is Var, which is defined like this:
+
+Var = {
+    name = str(),                         name is a string variable, it identifies it in global dictionary of variables
+
+    isDep = bool(),                       flag of whether the Var is dependent (is a scalar function with its own derivatives; additional variable or original LHS variable)
+                                          or independent (no own derivatives)
+
+    args = [Poly0(),...,Poly_k()],       list of positional polynomial (Poly objects) arguments; not empty only if variable is dependent
+
+    deps = {                             dictionary of polynomial derivatives, taking derivative of a Var is simply reading from this dict
+        0: Poly(),                    for additional always contains derivatives by positional arguments (read from lib);                         
+        ...
+        k: Poly(),
+
+        var0: Poly(),                    derivatives by independent variables are calculated internally after all the substitutions have been made
+        ...
+        varn: Poly()
+    },
+
+    derivative: self, varname, var_dict -> Poly    calculate derivative for dependent Var by Var; used after all the substitutions and fills the self.ders
+}
+
+Monom = {
+    coeff = float(),                                        all monomials are normalized so that there is a single numerical coefficient, in future support for symbolic coefficient (parametric)
+    vars = {                                                dict of variables (by name) with respective numerical powers 
+        var_name: pow,
+        ...
+    },                                      
+    signature: str                                          string with sorted varnames with powers for algebra                                     
+
+    derivate: self, varname -> Poly                         derivate Monomial by Var using chain rule and Var.ders; results in a Polynomial
+    prod: self, Monom -> Monom                              symbolic algebra 
+    add_similar: self, Monom -> Monom
+    scalar_prod: self, float -> Monom
+
+    printout: self -> str         
+}
+
+Poly = {
+    monomials = {                                           lists all monomials 
+        signature: Monom(),
+        ...
+    }                   
+
+    add: self, Poly -> Poly                                 symbolic algebra
+    scalar_prod: self, float -> Poly
+    prod: self, Poly -> Poly
+
+    derivative: self, varname -> Poly                         derivate Poly by Var using chain-rule, Monom method and Var.ders                                
+
+    printout: self -> str
+}
+
+

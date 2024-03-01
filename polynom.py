@@ -14,38 +14,35 @@ class Var():
     # global_var_dict MUST be supplied; after creation variable is stored there keyed by name;
     # global_var_dict is used for output and MOST IMPORTANTLY for derivative calculations on polynomial and monomial levels
     # this allows to avoid storing multiple instances of the same variable
-    def __init__(self, global_var_dict: dict, var_name: str, var_deps=dict()):
+    def __init__(self, global_var_dict: dict, var_name: str, var_deps=dict(), var_args=[]):
         self.name = var_name
         # dictionary which contains polynomial derivatives by independent variables 
         # in case of additional variables it contains polynomial derivatives ONLY
         # (which get calculated with respect to the system at substitution step)
         # in case of input system variables it contains RHS strings which get replaced 
-        # by Polynomials as algorithm transforms them 
-        self.deps = var_deps
-        self.deps[var_name] = Polynomial(mon_list=[Monomial(mon_coeff=1)])
-        global_var_dict[var_name] = self
-
-    # should return Poly or 0
-    # auxiliary method for calculating polynomial's derivatives during transformations and introduction of new variables
-    # to expand the system with additional variable derivatives the next method is used instead (Var.complete_derivative)
-    def derivative(self, var_name):
-        if var_name in self.deps:
-            der = self.deps[var_name]
-            if type(der) == Polynomial:
-                return self.deps[var_name]
-            else:
-                # TODO create temporary variable in place of system equation RHS;
-                # it gets substituted at end of algorithm, when all RHS are Polynomial
-                pass
+        # by Polynomials as algorithm transforms them
+        if var_args != []:
+            self.isDep = True 
+            self.args = var_args
         else:
-            return 0
+            self.isDep = False
+        self.deps = var_deps
+        global_var_dict[var_name] = self
         
     # TODO function for library variables to expand their dependencies dict after substitution
     # calculate the complete derivative by independent variable with respect to system
     # var_name MUST be name of system variable (either original or introduced at previous steps)
     # global_var_dict and sublibrary dict MUST be supplied
-    def complete_derivative(self, var_name: str, sublibrary: dict, global_var_dict: dict):
-        pass
+    def derivative(self, var_name: str, global_var_dict: dict):
+        if var_name not in self.deps:
+            result = Polynomial()
+            for i in range(len(self.args)):
+                result.add(self.deps[i].prod(self.args[i].derivative(var_name, global_var_dict)))
+            self.deps[var_name] = result
+            return result
+        else:
+            return self.deps[var_name]
+        
 
 
 class Monomial():
@@ -53,7 +50,7 @@ class Monomial():
     # coefficient (single real number)
     # vars dict (dictionary keyed by var_names with powers as values) for hierarchical calculations using Var subclass
     # signature (string containing sorted var names and their powers; for fast similarity check during arithmetics)
-    def __init__(self, mon_coeff: float, var_pow_list=[]):
+    def __init__(self, mon_coeff=0., var_pow_list=[]):
         self.coef = mon_coeff
         self.vars = dict()
 
