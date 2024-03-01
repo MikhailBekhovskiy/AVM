@@ -6,7 +6,7 @@
 # or calculated at introducing additional variables step using stored library info;
 # independent variable derivative is 1 or 0
 # dependent variable derivative is stored as dependency and is simply read
-
+from parse import *
 class Var():
     # variable is denoted by:
     # name (for output purposes); name MUST be always given
@@ -34,15 +34,18 @@ class Var():
     # var_name MUST be name of system variable (either original or introduced at previous steps)
     # global_var_dict and sublibrary dict MUST be supplied
     def derivative(self, var_name: str, global_var_dict: dict):
-        if var_name not in self.deps:
-            result = Polynomial()
-            for i in range(len(self.args)):
-                result.add(self.deps[i].prod(self.args[i].derivative(var_name, global_var_dict)))
-            self.deps[var_name] = result
-            return result
-        else:
-            return self.deps[var_name]
-        
+        if self.isDep:
+            if var_name not in self.deps:
+                result = Polynomial()
+                for i in range(len(self.args)):
+                    result.add(self.deps[i].prod(self.args[i].derivative(var_name, global_var_dict)))
+                self.deps[var_name] = result
+                return result
+            else:
+                return self.deps[var_name]
+        elif self.name == var_name:
+            return 1
+        return 0
 
 
 class Monomial():
@@ -127,6 +130,39 @@ class Monomial():
         return result[:len(result) - 2]
 
 
+def parse_mon(st: str, start: int, is_positive: bool, global_var_dict: dict) -> tuple[Monomial, int]:
+    i = start
+    var_pow_list = []
+    # read coefficient; if substring begins NOT with a number, then coefficient was omitted, thus 1
+    if st[start] > '9' or st[start] < '0':
+        coef = 1.
+    else:
+        res = parse_num(st, start)
+        coef = res[0]
+        i = res[1]
+    # the sign is read between the monomials
+    if not is_positive:
+        coef *= -1
+    # read variables part; monomial ends with space
+    while st[i] != ' ':
+        i += 1
+        res = parse_name(st, i)
+        name = res[0]
+        if name not in global_var_dict:
+            global_var_dict[name] = Var(global_var_dict, name)
+        i = res[1]
+        # if power is not specified, then it's 1
+        if st[i] != '^': 
+            power = 1
+        else:
+            i += 1
+            res = parse_num(st, i)
+            power = res[0]
+            i = res[1]
+        var_pow_list.append((name, power))
+    return Monomial(coef, var_pow_list), i
+
+
 class Polynomial():
     # Polynomial is simply a list of monomials (so its always normalized)
     # denoted by dict keyed by monomials signatures (for arithmetic purposes) with Monomial values
@@ -189,3 +225,21 @@ class Polynomial():
         if result[0] == '+':
             return result[1:]
         return result
+    
+
+def parse_poly(st:str, start:int) -> tuple[Polynomial, int]:
+    mon_list = []
+    is_positive = True
+    i = start
+    # monomial ends at EOS or as function argument
+    while i < len(st) and st[i] != ']' and st[i] != ';':
+        # move to beginning of monomial and remember minus
+        while i < len(st) and (st[i] == '+' or st[i] == ' ' or st[i] == '-'):
+            if st[i] == '-':
+                is_positive = False
+            i += 1
+        res = parse_mon(st, i, is_positive=is_positive)
+        mon_list.append(res[0])
+        i = res[1]
+        is_positive = True
+    return Polynomial(mon_list), i
