@@ -44,8 +44,8 @@ class Var():
             else:
                 return self.deps[var_name]
         elif self.name == var_name:
-            return 1
-        return 0
+            return Polynomial([Monomial(mon_coeff=1)])
+        return Polynomial()
 
 
 class Monomial():
@@ -57,7 +57,7 @@ class Monomial():
         self.coef = mon_coeff
         self.vars = dict()
         self.signature = ''
-        if self.coeff != 0:
+        if self.coef != 0:
             var_pow_list.sort(key=lambda x:x[0])
             for var in var_pow_list:
                 self.signature += str(var[0]) + str(var[1])
@@ -99,7 +99,7 @@ class Monomial():
     def derivative(self, var_name: str, global_var_dict: dict):
         result = Polynomial()
         for var in self.vars:
-            var_der = global_var_dict[var].derivative(var_name)
+            var_der = global_var_dict[var].derivative(var_name, global_var_dict)
             # var_der is either Poly or 0; 0 is ignored, Poly case added to result
             if var_der != 0:
                 # create Poly from remaining Mono part
@@ -124,7 +124,10 @@ class Monomial():
         result = f'{self.coef} * '
         for var in self.vars:
             power = self.vars[var]
-            result += f'{var}^{power} * '
+            if power != 1.:
+                result += f'{var}^{power} * '
+            else:
+                result += f'{var} * '
         return result[:len(result) - 2]
 
 
@@ -216,31 +219,32 @@ class Polynomial():
         return result
 
     # output
-    def printout(self, global_var_dict: dict):
+    def printout(self):
         result = ''
         for mon in self.mons:
             mono = self.mons[mon]
             if mono.coef > 0:
                 result += '+'
-            result += mono.printout(global_var_dict)
+            result += mono.printout()
         if result[0] == '+':
             return result[1:]
         return result
     
 
-def parse_poly(st:str, start:int) -> tuple[Polynomial, int]:
+def parse_poly(st:str, global_var_dict: dict, start=0) -> tuple[Polynomial, int]:
     mon_list = []
     is_positive = True
     i = start
-    # monomial ends at EOS or as function argument
+    # polynomial ends at EOS or as function argument
     while i < len(st) and st[i] != ']' and st[i] != ';':
         # move to beginning of monomial and remember minus
         while i < len(st) and (st[i] == '+' or st[i] == ' ' or st[i] == '-'):
             if st[i] == '-':
                 is_positive = False
             i += 1
-        res = parse_mon(st, i, is_positive=is_positive)
-        mon_list.append(res[0])
-        i = res[1]
-        is_positive = True
+        if i < len(st):
+            res = parse_mon(st, i, is_positive=is_positive, global_var_dict=global_var_dict)
+            mon_list.append(res[0])
+            i = res[1]
+            is_positive = True
     return Polynomial(mon_list), i

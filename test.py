@@ -1,3 +1,7 @@
+from polynom import *
+
+global_var_dict = dict()
+
 ###################
 # loaded sublibrary
 ###################
@@ -32,6 +36,25 @@ system = {
     'y1': 'x1^5*sin[x2]',
     'y2': '(ln[x1])^3*cos[x2]'
 }
+
+
+
+with open('input.txt', 'r') as f:
+    string = f.readline()
+P = parse_poly(string, global_var_dict, 0)[0]
+b = P.printout()
+print(f'P(x1,x2,x3) = {b}')
+
+dx1 = P.derivative('x1', global_var_dict)
+dx2 = P.derivative('x2', global_var_dict)
+dx3 = P.derivative('x3', global_var_dict)
+print(f'dP/dx1 = {dx1.printout()}')
+print(f'dP/dx2 = {dx2.printout()}')
+print(f'dP/dx3 = {dx3.printout()}')
+
+
+
+
 
 ####################
 # additional variables arguments should be as follows
