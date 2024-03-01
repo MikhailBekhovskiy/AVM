@@ -56,22 +56,19 @@ class Monomial():
     def __init__(self, mon_coeff=0., var_pow_list=[]):
         self.coef = mon_coeff
         self.vars = dict()
-
-        var_pow_list.sort(key=lambda x:x[0])
-        
         self.signature = ''
-        for var in var_pow_list:
-            self.signature += str(var[0]) + str(var[1])
-            self.vars[var[0]] = var[1]
+        if self.coeff != 0:
+            var_pow_list.sort(key=lambda x:x[0])
+            for var in var_pow_list:
+                self.signature += str(var[0]) + str(var[1])
+                self.vars[var[0]] = var[1]
 
 
     # called when normalizing poly after arithmetic or differentiation
     def add_similar(self, mon):
         if self.signature == mon.signature:
             new_coef = self.coef + mon.coef
-            if new_coef != 0:
-                return Monomial(mon_coeff=new_coef, var_pow_list=self.vars.copy())
-            return 0
+            return Monomial(mon_coeff=new_coef, var_pow_list=self.vars.copy())
         else:
             return 'Bug. This addition shouldn\'t have happened'
         
@@ -83,14 +80,15 @@ class Monomial():
     def prod(self, mon):
         new_coef = self.coef * mon.coef
         var_pow_list = []
-        for var in self.vars:
-            var_pow = self.vars[var]
-            if var in mon.vars:
-                var_pow += mon.vars[var]
-            var_pow_list.append((var, var_pow))
-        for var in mon.vars:
-            if var not in self.vars:
-                var_pow_list.append((var, mon.vars[var]))
+        if new_coef != 0:
+            for var in self.vars:
+                var_pow = self.vars[var]
+                if var in mon.vars:
+                    var_pow += mon.vars[var]
+                var_pow_list.append((var, var_pow))
+            for var in mon.vars:
+                if var not in self.vars:
+                    var_pow_list.append((var, mon.vars[var]))
         return Monomial(new_coef, var_pow_list)
     
 
@@ -119,10 +117,10 @@ class Monomial():
                 result = result.add(var_der.prod(rem))
         if len(result.mons) > 0:
             return result.scalar_prod(self.coef)
-        return 0
+        return result
     
     # for output
-    def printout(self, global_var_dict):
+    def printout(self):
         result = f'{self.coef} * '
         for var in self.vars:
             power = self.vars[var]
@@ -170,12 +168,15 @@ class Polynomial():
     def __init__(self, mon_list=[]):
         self.mons = dict()
         for mon in mon_list:
-            self.mons[mon.signature] = mon
+            if type(mon) is Monomial:
+                self.mons[mon.signature] = mon
+            else:
+                print('Bug, monomial was not read')
 
     # multivariate polynomial arithmetics
     # returns normalized polynomial
     def add(self, poly):
-        if poly == 0:
+        if poly.mons == []:
             return self
         else:
             mon_list = []
@@ -209,7 +210,7 @@ class Polynomial():
 
     # derivative of a polynomial is simply the sum of it's monomial's derivatives
     def derivative(self, var_name: str, global_var_dict: dict):
-        result = Polynomial([])
+        result = Polynomial()
         for mon in self.mons:
             result = result.add(self.mons[mon].derivative(var_name, global_var_dict))
         return result
