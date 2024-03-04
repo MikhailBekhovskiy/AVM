@@ -41,7 +41,6 @@ functions = {'sin[x2]','cos[x2]', 'ln[x1]'}
 parsed1 = dict()
 for f in functions:
     fname, j = parse_name(f, 0)
-    args = []
     args, j = parse_name(f, j + 1, stop_symbols={']'})
     parsed1[library_names[fname]] = args
 
