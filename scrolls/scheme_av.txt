@@ -1,0 +1,42 @@
+The mechanism of introducing additional variables is described here.
+
+WHILE fname empty AND expressions left: # function with polynomial arguments hasn't been found
+    choose next expression (from user system RHS)
+    func = parse.find_func(expression) -> (fname, args)
+IF fname empty:
+    # no polynomial functions, finish work by calculating derivatives
+    # of AVs, different module
+ELSE:
+    # polynomial function has been found
+    avreader.introduce_av(func) -> [Vars] # multiple vars, for all extension functions
+    FOREACH av:
+        FOREACH expression:
+            replace func with av.name
+
+
+lib_fnames:
+{fname:(section, fnum_in_section),}
+
+lib_rhs:
+{section:
+    {fnum:{
+            ind_var: rhs,
+        },
+    },
+}
+
+lib_ext:
+{
+    section:{
+        fnum: fname,
+    },
+}
+
+av_dict may be as follows (it should store all functions from extensions):
+{funcname: 
+    {
+        args: varname,
+    },
+}
+then replacement looks thus:
+'{funcname}[{args}]' -> av_dict[funcname][args]

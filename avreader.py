@@ -11,10 +11,10 @@ def get_candidates(rhs: str) -> set:
 
 # TODO testing; factorize
 # function for filling dictionary with new AV by function symbolic description
-def introduce_av(f: str, lib: tuple[dict], avs: list[str], 
+def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: list[str], 
                  global_var_dict: dict[str:Var]):
-    fname, j = parse_name(f, 0)
-    args, j = parse_name(f, j+1, stop_symbols={']'})
+    fname = f[0]
+    args = f[1]
 
     ext = lib[0][fname][0]
 
