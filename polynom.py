@@ -323,7 +323,7 @@ if __name__ == "__main__":
         polynoms = [None] * len(strings)
         mass_prod = ''
         for i in range(len(strings)):
-            P = parse_poly(strings[i], global_var_dict)[0]
+            P = parse_poly(strings[i])[0]
             polynoms[i] = P
             mass_prod += f'({P.printout()})'
         mass_res = polynoms[0]
