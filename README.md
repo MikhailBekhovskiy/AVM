@@ -6,3 +6,6 @@ The work can be roughly divided in following stages:
 3. Designing and implementing AVM Library of functions
 4. Create GUI\  
 References to be added.
+
+
+To see current working example run 'python avreader.py'
