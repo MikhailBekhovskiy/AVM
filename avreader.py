@@ -1,7 +1,8 @@
-from polynom import Var, parse_poly
+from polynom import Polynomial, Var, parse_poly
 
 # TODO The proper library loading mechanism
 from library import library, get_ext_by_fname
+from parse import find_simple_func, parse_func
 
 
 # TODO
@@ -59,24 +60,45 @@ def put_in_av(new_avs: dict, expression: str):
             new_exp = new_exp.replace(func, new_avs[func])
     return new_exp
 
+def put_in_sys_av(new_avs: dict, exprs: list):
+    new_exprs = []
+    for e in exprs:
+        new_exprs.append(put_in_av(new_avs, e))
+    return new_exprs
+
 # for testing
 if __name__ == "__main__":
     # variables dictionaries; will be read from input system initially
     global_var_dict = {'x1': Var('x1'), 'x2': Var('x2')}
     avs = dict()
-    foos = [('sin', 'x2'),('ln', 'x1')]
-    expr = 'y2 = ln[x1]^3 + sin[x2]'
+    # foos = [('sin', 'x2'),('ln', 'x1')]
+    exprs = ['x1^5*sin[x2]', 'ln[x1]^3*cos[x2]']
     ind = ['x1', 'x2']
-
-    for f in foos:
-        navs = introduce_av(f, library, avs, global_var_dict)
-        expr = put_in_av(navs, expr)
+    # introduce av 
+    for i in range(len(exprs)):
+        foo = find_simple_func(exprs[i])
+        # print(foo)
+        if foo != '':
+            foo = parse_func(foo)
+            navs = introduce_av(foo, library, avs, global_var_dict)
+            exprs = put_in_sys_av(navs, exprs)
+    # calculate av derivatives
     print(avs)
-    print(expr)
-    for iv in ind:
-        for av in avs:
+    for av in avs:
+        for iv in ind:
             aVar = global_var_dict[avs[av]]
             der = aVar.derivative(iv, global_var_dict)
             global_var_dict[aVar.name].var_deps[iv] = der
             res = f'd{aVar.name}/d{iv} = {der.printout()}'
+            print(res)
+    # calculate func derivatives
+    poly_expr = dict()
+    for i in range(len(exprs)):
+        poly_expr[f'y{i}'] = parse_poly(exprs[i])[0]
+    '''for poly in poly_expr:
+        print(poly_expr[poly].printout())'''
+    for foo in poly_expr:
+        for iv in ind:
+            der = poly_expr[foo].derivative(iv, global_var_dict)
+            res = f'd{foo}/d{iv} = {der.printout()}'
             print(res)

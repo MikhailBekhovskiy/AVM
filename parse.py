@@ -15,7 +15,10 @@ def parse_name(st: str, start: int, stop_symbols={'^', '[', ']', ' ', '*'},
     while i < len(st) and st[i] not in stop_symbols:
         if backwards:
             res = st[i] + res
-            i -= 1
+            if i > 0:
+                i -= 1
+            else:
+                break
         else:
             res += st[i]
             i += 1
