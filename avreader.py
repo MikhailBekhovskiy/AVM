@@ -14,7 +14,7 @@ def get_candidates(rhs: str) -> set:
 # TODO testing;
 # function for filling dictionary with new AV by function symbolic description
 def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict, 
-                 global_var_dict: dict[str:Var]) -> dict:
+                 global_var_dict: dict[str:Var], debug=False) -> dict:
     fnames = [f[0]]
     args = f[1]
     new_avs = dict()
@@ -32,7 +32,8 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
     for fu in fnames:
         func = fu + '[' + args + ']'
         if func not in avs:
-            name = f'q{len(avs)}'
+            # name = f'q{len(avs)}'
+            name = f'x{len(global_var_dict) + 1}'
             avs[func] = name
             cor_table[lib[0][fu][1]] = name
             global_var_dict[name] = Var(name, dict(), polyargs)
@@ -49,6 +50,8 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
                 if v1 in rhs:
                     rhs = rhs.replace(v1, cor_table[v1])
             global_var_dict[name].var_deps[i_v] = parse_poly(rhs)[0]
+            if debug:
+                print(rhs)
     return new_avs
 
 # TODO testing
@@ -68,37 +71,54 @@ def put_in_sys_av(new_avs: dict, exprs: list):
 
 # for testing
 if __name__ == "__main__":
+    # examples input data
+    '''
     # variables dictionaries; will be read from input system initially
     global_var_dict = {'x1': Var('x1'), 'x2': Var('x2')}
     avs = dict()
-    # foos = [('sin', 'x2'),('ln', 'x1')]
     exprs = ['x1^5*sin[x2]', 'ln[x1]^3*cos[x2]']
     ind = ['x1', 'x2']
-    # introduce av 
-    for i in range(len(exprs)):
-        foo = find_simple_func(exprs[i])
-        # print(foo)
-        if foo != '':
-            foo = parse_func(foo)
-            navs = introduce_av(foo, library, avs, global_var_dict)
-            exprs = put_in_sys_av(navs, exprs)
-    # calculate av derivatives
-    print(avs)
-    for av in avs:
-        for iv in ind:
-            aVar = global_var_dict[avs[av]]
-            der = aVar.derivative(iv, global_var_dict)
-            global_var_dict[aVar.name].var_deps[iv] = der
-            res = f'd{aVar.name}/d{iv} = {der.printout()}'
-            print(res)
     # calculate func derivatives
     poly_expr = dict()
     for i in range(len(exprs)):
         poly_expr[f'y{i}'] = parse_poly(exprs[i])[0]
-    '''for poly in poly_expr:
-        print(poly_expr[poly].printout())'''
+    for poly in poly_expr:
+        print(poly_expr[poly].printout())
     for foo in poly_expr:
         for iv in ind:
             der = poly_expr[foo].derivative(iv, global_var_dict)
             res = f'd{foo}/d{iv} = {der.printout()}'
             print(res)
+    '''
+
+    global_var_dict = {'x1': Var('x1')}
+    avs = dict()
+    exprs = ['sin[Hb[x1;x1^2;x1^3]] + cos[Hb[x1;x1^2;x1^3]]']
+    ind = ['x1']
+
+
+    # introduce av 
+    for i in range(len(exprs)):
+        foo = find_simple_func(exprs[i])
+        while foo != '':
+        # print(foo)
+            foo = parse_func(foo)
+            navs = introduce_av(foo, library, avs, global_var_dict, debug=False)
+            exprs = put_in_sys_av(navs, exprs)
+            # print(exprs)
+            foo = find_simple_func(exprs[i])
+    # calculate av derivatives
+    print(avs)
+    poly_expr = dict()
+    for i in range(len(exprs)):
+        poly_expr[f'y{i}'] = parse_poly(exprs[i])[0]
+    for poly in poly_expr:
+        print(poly_expr[poly].printout())
+    for av in avs:
+        for iv in ind:
+            aVar = global_var_dict[avs[av]]
+            der = aVar.derivative(iv, global_var_dict, debug=False)
+            global_var_dict[aVar.name].var_deps[iv] = der
+            res = f'd{aVar.name}/d{iv} = {der.printout()}'
+            print(res)
+    

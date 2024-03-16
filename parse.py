@@ -38,7 +38,7 @@ def find_simple_func(expr: str, start=0)->str:
     func = ''
     while i < len(expr) and expr[i] != '[':
         i += 1
-    if expr[i] == '[':
+    if i < len(expr) and expr[i] == '[':
         args = parse_name(expr, i + 1, stop_symbols={']'})
         if poly_check(args[0]):
             func = parse_name(expr, i-1, stop_symbols={' ', '*', '['}, backwards=True)[0]

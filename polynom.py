@@ -119,8 +119,8 @@ class Monomial():
             new_coef = self.coef * mon.coef
             var_pow_list = None
             if new_coef != 0.:
+                var_pow_list = []
                 for var in self.vars:
-                    var_pow_list = []
                     var_pow = self.vars[var]
                     if var in mon.vars:
                         var_pow += mon.vars[var]
@@ -223,12 +223,20 @@ class Polynomial():
                 mon_list.append(self.mons[mon].scalar_prod(a))
             return Polynomial(mon_list)
 
-    def prod(self, poly):
+    def prod(self, poly, debug=False):
         result = Polynomial()
         for mon1 in self.mons:
+            if debug:
+                print(self.mons[mon1].printout())
             for mon2 in poly.mons:
+                if debug:
+                    print(poly.mons[mon2].printout())
                 new_mon = self.mons[mon1].prod(poly.mons[mon2])
+                #if debug:
+                   # print(new_mon.printout())
                 result = result.add(Polynomial([new_mon]))
+                if debug:
+                    print(result)
         return result
 
     # derivative of a polynomial is simply the sum of it's monomial's derivatives
@@ -328,7 +336,7 @@ if __name__ == "__main__":
             mass_prod += f'({P.printout()})'
         mass_res = polynoms[0]
         for i in range(1, len(polynoms)):
-            mass_res = mass_res.prod(polynoms[i])
+            mass_res = mass_res.prod(polynoms[i], debug=True)
 
         print(mass_prod,'=',mass_res.printout())
 
