@@ -241,6 +241,12 @@ class Polynomial():
                     print(result)
         return result
 
+    def power(self, power: int):
+        res = self.copy()
+        for i in range(1, power):
+            res = res.prod(self)
+        return res
+
     # derivative of a polynomial is simply the sum of it's monomial's derivatives
     def derivative(self, var_name: str, global_var_dict: dict):
         result = Polynomial()
