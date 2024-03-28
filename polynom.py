@@ -6,7 +6,6 @@
 # or calculated at introducing additional variables step using stored library info;
 # independent variable derivative is 1 or 0
 # dependent variable derivative is stored as dependency and is simply read
-from parse import parse_name,parse_num
 class Var():
     # variable is denoted by:
     # name (for output purposes); name MUST be always given
@@ -141,18 +140,21 @@ class Monomial():
             return result
         else:
             for var in self.vars:
-                var_der = global_var_dict[var].derivative(var_name, global_var_dict)
-                if len(var_der.mons) > 0:
-                    rem_var_pow_list = []
-                    rem_coef = 1.
-                    if self.vars[var] > 1:
-                        rem_var_pow_list.append((var, self.vars[var] - 1))
-                        rem_coef = self.vars[var]
-                    for var1 in self.vars:
-                        if var1 != var:
-                            rem_var_pow_list.append((var1, self.vars[var1]))
-                    rem = Polynomial([Monomial(mon_coeff=rem_coef, var_pow_list=rem_var_pow_list)])
-                    result = result.add(var_der.prod(rem))
+                if var in global_var_dict:
+                    var_der = global_var_dict[var].derivative(var_name, global_var_dict)
+                    if len(var_der.mons) > 0:
+                        rem_var_pow_list = []
+                        rem_coef = 1.
+                        if self.vars[var] > 1:
+                            rem_var_pow_list.append((var, self.vars[var] - 1))
+                            rem_coef = self.vars[var]
+                        for var1 in self.vars:
+                            if var1 != var:
+                                rem_var_pow_list.append((var1, self.vars[var1]))
+                        rem = Polynomial([Monomial(mon_coeff=rem_coef, var_pow_list=rem_var_pow_list)])
+                        result = result.add(var_der.prod(rem))
+                else:
+                    continue
             return result.scalar_prod(self.coef)
             
     
@@ -263,101 +265,3 @@ class Polynomial():
                 return '0'
             return result
     
-def parse_mon(st: str, start: int, is_positive: bool) -> tuple[Monomial, int]:
-    i = start
-    var_pow_list = []
-    # read coefficient; if substring begins NOT with a number, then coefficient was omitted, thus 1
-    if st[start] > '9' or st[start] < '0':
-        coef = 1.
-    else:
-        res = parse_num(st, start)
-        coef = res[0]
-        i = res[1]
-        i += 1
-    # the sign is read between the monomials
-    if not is_positive:
-        coef *= -1
-    # read variables part; monomial ends with space
-    while i < len(st) and st[i] != ' ':
-        if st[i] == '*':
-            i += 1
-        res = parse_name(st, i)
-        name = res[0]
-        i = res[1]
-        # if power is not specified, then it's 1
-        if i >= len(st) or st[i] != '^': 
-            power = 1.
-        else:
-            i += 1
-            res = parse_num(st, i)
-            power = res[0]
-            i = res[1]
-        var_pow_list.append((name, power))
-    return Monomial(coef, var_pow_list), i    
-
-def parse_poly(st:str, start=0) -> tuple[Polynomial, int]:
-    mon_list = []
-    is_positive = True
-    i = start
-    # polynomial ends at EOS or as function argument
-    while i < len(st) and st[i] != ']' and st[i] != ';':
-        # move to beginning of monomial and remember minus
-        while i < len(st) and (st[i] == ' ' or st[i] == '+' or st[i] == '-'):
-            if st[i] == '-':
-                is_positive = False
-            i += 1
-        if i < len(st):
-            res = parse_mon(st, i, is_positive=is_positive)
-            mon_list.append(res[0])
-            i = res[1]
-            is_positive = True
-    return Polynomial(mon_list), i
-
-# for testing purposes
-if __name__ == "__main__":
-    # testing modes:
-    # 0 - production of polynomials passed as strings in scrolls/input.txt
-    # 1 - derivative of composite functions using preloaded library and var_dict
-
-    mode = 0
-    if mode == 0:
-        global_var_dict = dict()
-        with open('scrolls/input.txt', 'r') as f:
-            strings = f.readlines()
-
-        for i in range(len(strings)):
-            strings[i] = strings[i].strip('\n')
-
-        polynoms = [None] * len(strings)
-        mass_prod = ''
-        for i in range(len(strings)):
-            P = parse_poly(strings[i])[0]
-            polynoms[i] = P
-            mass_prod += f'({P.printout()})'
-        mass_res = polynoms[0]
-        for i in range(1, len(polynoms)):
-            mass_res = mass_res.prod(polynoms[i], debug=True)
-
-        print(mass_prod,'=',mass_res.printout())
-
-    elif mode == 1:
-        global_var_dict = {
-        'x1': Var('x1'),
-        'x2': Var('x2'),
-        'q1': Var('q1',
-                {0: Polynomial([Monomial(1.,[('q2', 1)])])},
-                [Polynomial([Monomial(1., [('x2',1)])])] ),
-        'q2': Var('q2',
-                {0: Polynomial([Monomial(-1.,[('q1', 1)])])},
-                [Polynomial([Monomial(1., [('x2',1)])])] )
-        }
-
-        def polyfy_var(a: Var) -> Polynomial:
-            mon = Monomial(1., [(a.name, 1)])
-            return Polynomial([mon])
-
-        q1 = global_var_dict['q1']
-        dq1_dx1 = q1.derivative('x1', global_var_dict)
-        dq1_dx2 = q1.derivative('x2', global_var_dict)
-        print(dq1_dx1.printout())
-        print(dq1_dx2.printout())

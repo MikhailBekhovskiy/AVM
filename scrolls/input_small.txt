@@ -1,0 +1,4 @@
+Mode: F
+IV: x1 x2
+y1 = x1^5*sin[x2]
+y2 = ln[x1]^3*cos[x2]
