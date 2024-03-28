@@ -28,7 +28,7 @@ class Var():
             if debug:
                 print('Same names')
             return Polynomial([Monomial(mon_coeff=1.)])
-        elif self.var_args == []:
+        elif self.var_deps is None:
             if debug:
                 print('Independent variable')
             return Polynomial()
@@ -57,7 +57,7 @@ class Var():
         
 
     def printout(self):
-        print(f'Variable {self.name}; dependent: {self.var_args != []}')
+        print(f'Variable {self.name}; dependent: {self.var_deps is not None}')
         if self.var_args != []:
             print(f'Arguments ({len(self.var_args)})')
             for arg in self.var_args:

@@ -125,9 +125,9 @@ def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
         for i in range(2, len(lines)):
             line = lines[i].split('=')
             f_id = line[0].strip()
-            f_args = []
-            for v in ind_vars:
-                f_args.append(global_var_dict[v])
+            # f_args = []
+            # for v in ind_vars:
+            #    f_args.append(global_var_dict[v])
             # global_var_dict[f_id] = Var(f_id, var_args = f_args)
             f_rhs = line[1][1:len(line[1])-1]
             exprs[f_id] = f_rhs
@@ -136,7 +136,23 @@ def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
             for f in exprs:
                 print(f'{f} = {exprs[f]}')
     else:
-        pass
+        for i in range(2, len(lines)):
+            line = lines[i].split('=')
+            lhs = line[0].strip().split('/')
+            x_i = lhs[0][1:]
+            if x_i not in global_var_dict:
+                global_var_dict[x_i] = Var(x_i, var_deps=dict())
+            t_j = lhs[1][1:]
+            rhs = line[1][1:len(line[1])-1]
+            if x_i not in exprs:
+                exprs[x_i] = dict()
+            exprs[x_i][t_j] = rhs
+        if debug:
+            print('System of equations')
+            for x in exprs:
+                for t in exprs[x]:
+                    print(f'd{x}/d{t} = {exprs[x][t]}')
+
     return mode, ind_vars, exprs, global_var_dict
 
 # DE system is 2 level dictionary
@@ -152,4 +168,5 @@ def printout_poly_func(sys: dict):
 
 
 if __name__ == "__main__":
-    read_input(debug=True)
+    m,iv,e,gvd = read_input(infname = 'input_de_small.txt',debug=True)
+    print(gvd)

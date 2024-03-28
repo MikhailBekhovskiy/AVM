@@ -27,7 +27,10 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
         func = fu + '[' + args + ']'
         if func not in avs:
             # name = f'q{len(avs)}'
-            name = f'x{len(global_var_dict) + 1}'
+            if mode == 'F':
+                name = f'x{len(global_var_dict) + 1}'
+            else:
+                name = f'x{len(global_var_dict) - ivs_num + 1}'
             avs[func] = name
             cor_table[lib[0][fu][1]] = name
             global_var_dict[name] = Var(name, dict(), polyargs)
@@ -57,10 +60,15 @@ def put_in_av(new_avs: dict, expression: str)->str:
             new_exp = new_exp.replace(func, new_avs[func])
     return new_exp
 
-def put_in_sys_av(new_avs: dict, exprs: dict)->dict:
+def put_in_sys_av(new_avs: dict, exprs: dict, mode: str)->dict:
     new_exprs = dict()
     for e in exprs:
-        new_exprs[e] = put_in_av(new_avs, exprs[e])
+        if mode == 'F':
+            new_exprs[e] = put_in_av(new_avs, exprs[e])
+        else:
+            new_exprs[e] = dict()
+            for t in exprs[e]:
+                new_exprs[e][t] = put_in_av(new_avs, exprs[e][t])
     return new_exprs
 
 # for testing

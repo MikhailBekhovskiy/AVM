@@ -9,5 +9,5 @@ References to be added.
 
 
 Currently program works for transforming systems of functions and calculating their 1st order symbolic derivatives. Your input system has to be described in 'scrolls/[input_file]' in a fashion similar to examples (input_small, input_big). 
-NB! F mode, independent variables explicitly specifies and blank line at an end currently (user-friendliness is not a priority ATM). Readme will be updated as needed.
+NB! F mode, independent variables explicitly specified and blank line at an end currently (user-friendliness is not a priority ATM). Readme will be updated as needed.
 Launch main.py. 
