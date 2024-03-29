@@ -107,7 +107,6 @@ def parse_poly(st:str, start=0) -> tuple[Polynomial, int]:
             is_positive = True
     return Polynomial(mon_list), i
 
-
 def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
     global_var_dict = dict()
     with open(f'scrolls/{infname}','r') as f:

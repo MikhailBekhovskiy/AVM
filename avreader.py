@@ -47,6 +47,10 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
                 if v1 in rhs:
                     rhs = rhs.replace(v1, cor_table[v1])
             global_var_dict[name].var_deps[i_v] = parse_poly(rhs)[0]
+            vari = global_var_dict[name]
+            for i in range(len(vari.var_args)):
+                if f'p{i}' in rhs:
+                    global_var_dict[name].var_deps[i_v] = vari.var_deps[i_v].subs_poly(f'p{i}', vari.var_args[i])
             if debug:
                 print(rhs)
     return new_avs

@@ -1,7 +1,8 @@
 from avreader import find_simple_func, parse_func, introduce_av, put_in_sys_av
-from library import library as sublib
+from library import library, lib_na
 from polynom import Var
 from parse import read_input, parse_poly, printout_poly_de, printout_poly_func
+sublib = lib_na
 
 def de_transform(system: dict, gvd: dict, ivs_num: int):
     avs = dict()
@@ -57,7 +58,7 @@ def og_func_derivatives(sys: dict, ivs: list, gvd:dict) -> dict:
 
 if __name__=="__main__":
     # change this to the name of your file. it has to be stored in scrolls/'
-    input_name = 'input_de_big.txt'
+    input_name = 'input_big.txt'
 
 
     m, ivs, sys, gvd = read_input(infname = input_name, debug=False)
