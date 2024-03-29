@@ -57,7 +57,7 @@ def og_func_derivatives(sys: dict, ivs: list, gvd:dict) -> dict:
 
 if __name__=="__main__":
     # change this to the name of your file. it has to be stored in scrolls/'
-    input_name = 'input_de_small.txt'
+    input_name = 'input_de_big.txt'
 
 
     m, ivs, sys, gvd = read_input(infname = input_name, debug=False)

@@ -35,7 +35,7 @@ class Var():
         else:
             if var_name in self.var_deps:
                 if debug:
-                    print('Der previously calculated')
+                    print('Derivative previously calculated')
                 return self.var_deps[var_name]
             else:
                 if debug:
@@ -83,6 +83,14 @@ class Monomial():
                 self.signature += str(var[0]) + str(var[1])
                 self.vars[var[0]] = var[1]
 
+    def recalc_signature(self):
+        self.signature = ''
+        var_pow_list = list(self.vars.items())
+        if self.coef != 0. and var_pow_list != []:
+            var_pow_list.sort(key=lambda x:x[0])
+            for var in var_pow_list:
+                self.signature += str(var[0]) + str(var[1])
+
     def copy(self):
         coef = self.coef
         vars = None
@@ -91,6 +99,16 @@ class Monomial():
             for var in self.vars:
                 vars.append((var, self.vars[var]))
         return Monomial(coef, vars)
+
+    def remove_var(self, var_name, debug=False):
+        res = self.copy()
+        if var_name in res.vars:
+            del res.vars[var_name]
+            res.recalc_signature()
+        else:
+            if debug:
+                print('No such variable in monomial')
+        return res
 
     # called when normalizing poly after arithmetic or differentiation
     def add_similar(self, mon):
@@ -131,6 +149,12 @@ class Monomial():
                         var_pow_list.append((var, mon.vars[var]))
             return Monomial(new_coef, var_pow_list)
     
+    def subs_poly(self, var_name: str, poly, debug = False):
+        res = Polynomial()
+        if var_name in self.vars:
+            res = Polynomial(mon_list=[self.remove_var(var_name, debug=debug)])
+            res = res.prod(poly.power(int(self.vars[var_name])))
+        return res
 
     # returns Poly
     # complete derivative calculated using chain rule
@@ -245,6 +269,15 @@ class Polynomial():
         res = self.copy()
         for i in range(1, power):
             res = res.prod(self)
+        return res
+
+    def subs_poly(self, var_name, poly, debug=False):
+        res = self.copy()
+        for m in self.mons:
+            if var_name in m:
+                p = self.mons[m].subs_poly(var_name, poly, debug=debug)
+                del res.mons[m]
+                res = res.add(p)
         return res
 
     # derivative of a polynomial is simply the sum of it's monomial's derivatives

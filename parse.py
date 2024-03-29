@@ -80,11 +80,11 @@ def parse_mon(st: str, start: int, is_positive: bool, stop_symbs={' ', '+', '-'}
         i = res[1]
         # if power is not specified, then it's 1
         if i >= len(st) or st[i] != '^': 
-            power = 1.
+            power = 1
         else:
             i += 1
             res = parse_num(st, i)
-            power = res[0]
+            power = int(res[0])
             i = res[1]
         var_pow_list.append((name, power))
     return Monomial(coef, var_pow_list), i    
@@ -155,6 +155,21 @@ def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
 
     return mode, ind_vars, exprs, global_var_dict
 
+def read_input_polytest(infname='test_poly_subs.txt', debug=False):
+    with open(f'scrolls/{infname}','r') as f:
+        lines = f.readlines()
+    og = parse_poly(lines[0].split(':')[1].strip())[0]
+    var = lines[1].split(':')[1].split('=')[0].strip()
+    poly = parse_poly(lines[1].split(':')[1].split('=')[1].strip())[0]
+    if debug:
+        print(og.printout())
+        print(var)
+        print(poly.printout())
+    new = og.subs_poly(var, poly)
+    if debug:
+        print(new.printout())
+    return new
+
 # DE system is 2 level dictionary
 def printout_poly_de(sys: dict):
     for f in sys:
@@ -168,5 +183,6 @@ def printout_poly_func(sys: dict):
 
 
 if __name__ == "__main__":
-    m,iv,e,gvd = read_input(infname = 'input_de_small.txt',debug=True)
-    print(gvd)
+    # m,iv,e,gvd = read_input(infname = 'input_de_small.txt',debug=True)
+    # print(gvd)
+    read_input_polytest(debug=True)
