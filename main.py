@@ -28,7 +28,7 @@ def func_transform(funcs: dict, global_var_dict: dict, ivs_num: int):
         foo = find_simple_func(funcs[f])
         while foo != '':
             foo = parse_func(foo)
-            navs = introduce_av(foo, sublib, avs, global_var_dict,mode='F', ivs_num=ivs_num)
+            navs = introduce_av(foo, sublib, avs, global_var_dict, mode='F', ivs_num=ivs_num)
             funcs = put_in_sys_av(navs, funcs, 'F')
             foo = find_simple_func(funcs[f])
     for f in funcs:
@@ -67,8 +67,8 @@ def initial_values(gvd: dict):
 
 if __name__=="__main__":
     # change this to the name of your file. it has to be stored in scrolls/'
-    input_name = 'input.txt'
-    m, ivs, sys, gvd = read_input(infname = input_name, debug=False)
+    input_name = 'input_small.txt'
+    m, ivs, sys, gvd = read_input(infname = input_name, debug=True)
     # print(sys)
     # for v in gvd:
     #   print(gvd[v].printout())

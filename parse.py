@@ -126,12 +126,16 @@ def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
     for i in range(len(ind_vars)):
         ind_vars[i] = ind_vars[i].strip(' ')
         # print(v)
-        global_var_dict[ind_vars[i]] = Var(var_name=ind_vars[i], iv=ivs[ind_vars[i]])
+        if mode == 'DE':
+            global_var_dict[ind_vars[i]] = Var(var_name=ind_vars[i], iv=ivs[ind_vars[i]])
+        else:
+            global_var_dict[ind_vars[i]] = Var(var_name=ind_vars[i])
     exprs = dict()
     if debug:
         print(f'Mode is {mode}')
         print(f'Independent variables are {ind_vars}')
-        print(f'Initial values: {ivs}')        
+        if mode == 'DE':
+            print(f'Initial values: {ivs}')        
     if mode == 'F':
         for i in range(2, len(lines)):
             line = lines[i].split('=')

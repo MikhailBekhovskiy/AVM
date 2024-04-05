@@ -1,5 +1,6 @@
 Mode: DE
-IV: t
+Independent variables: t
+Initial values: t=0; x1=0; x2=1; x3=5
 dx1/dt = x3^3*sin[cos[a*ln[x2]^2 + b*x3]] + x3^3*b*ln[x2]^4 + sin[a*ln[x2]^2 + b*x3]^5 + Dv[x1]
 dx2/dt = x2^2*cos[sin[a*ln[x2]^2 + b*x3]] + cos[a*ln[x2]^2 + b*x3]^4 + EK[sin[sin[a*ln[x2]^2 + b*x3]];x1]
 dx3/dt = x1*ch[a*ln[x2]^2 + b*x3]^2 + x1*sin[a*ln[x2]^2 + b*x3] + sh[a*ln[x2]^2 + b*x3]^5

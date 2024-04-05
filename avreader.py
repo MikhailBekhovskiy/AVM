@@ -34,7 +34,8 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
             avs[func] = name
             cor_table[lib[0][fu][1]] = name
             global_var_dict[name] = Var(var_name=name, var_deps=dict(), var_args=polyargs, f_def=fu)
-            global_var_dict[name].evaluate(gvd=global_var_dict, symb=True, library=None)
+            if mode == 'DE':
+                global_var_dict[name].evaluate(gvd=global_var_dict, symb=True, library=None)
             new_avs[func] = name
         else:
             cor_table[lib[0][fu][1]] = avs[func]
