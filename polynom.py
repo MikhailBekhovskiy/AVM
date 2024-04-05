@@ -6,20 +6,24 @@
 # or calculated at introducing additional variables step using stored library info;
 # independent variable derivative is 1 or 0
 # dependent variable derivative is stored as dependency and is simply read
+import math
+elementaries={'sin', 'cos', 'ch', 'sh', 'inv', 'ln'}
 class Var():
     # variable is denoted by:
     # name (for output purposes); name MUST be always given
     # dependencies dict (derivative substitutions for chain-rule calculations); might be empty if variable is independent;
-    def __init__(self, var_name: str, var_deps=None, var_args=[]):
+    def __init__(self, var_name: str, var_deps=None, var_args=[], iv=None, f_def=None):
         self.name = var_name
         # dictionary which contains only polynomial derivatives by independent variables 
         # and positional arguments (in case of additional variable)
         # polynomial derivatives contain variables ALREADY present in global_var_dictionary
         # this will be handled at preprocessing step and during introduction of AVs
-        self.var_deps = var_deps
-        self.var_args = var_args
+        self.deps = var_deps
+        self.args = var_args
+        self.iv = iv
+        self.f_def = f_def
         if var_args !=[] and var_deps is None:
-            self.var_deps = dict()
+            self.deps = dict()
         
         
     # TODO testing
@@ -28,23 +32,23 @@ class Var():
             if debug:
                 print('Same names')
             return Polynomial([Monomial(mon_coeff=1.)])
-        elif self.var_deps is None:
+        elif self.deps is None:
             if debug:
                 print('Independent variable')
             return Polynomial()
         else:
-            if var_name in self.var_deps:
+            if var_name in self.deps:
                 if debug:
                     print('Derivative previously calculated')
-                return self.var_deps[var_name]
+                return self.deps[var_name]
             else:
                 if debug:
                     print('Chain rule')
                 result = Polynomial()
                 # chain rule for additional (dependent) variables
-                for i in range(len(self.var_args)):
-                    part_der = self.var_deps[i]
-                    arg_der = self.var_args[i].derivative(var_name, global_var_dict)
+                for i in range(len(self.args)):
+                    part_der = self.deps[i]
+                    arg_der = self.args[i].derivative(var_name, global_var_dict)
                     plus = part_der.prod(arg_der)
                     if debug:
                         print(f'Pos Der is {part_der.printout()}')
@@ -57,17 +61,56 @@ class Var():
         
 
     def printout(self):
-        print(f'Variable {self.name}; dependent: {self.var_deps is not None}')
-        if self.var_args != []:
-            print(f'Arguments ({len(self.var_args)})')
-            for arg in self.var_args:
+        print(f'Variable {self.name}; dependent: {self.deps is not None}')
+        if self.args != []:
+            print(f'Arguments ({len(self.args)})')
+            for arg in self.args:
                 print(arg.printout())
-            for dep in self.var_deps:
+            for dep in self.deps:
                 if type(dep) is not str:
-                    print(f'Derivative by positional argument {dep} is {self.var_deps[dep].printout()}')
+                    print(f'Derivative by positional argument {dep} is {self.deps[dep].printout()}')
                 else:
-                    print(f'Derivative by {dep} is {self.var_deps[dep].printout()}')
+                    print(f'Derivative by {dep} is {self.deps[dep].printout()}')
         print()
+
+    def evaluate(self, gvd:dict, symb=True, library=None):
+        if self.iv is not None:
+            return self.iv
+        elif self.args != []:
+            arg = self.args[0].evaluate(gvd, symb, library)
+            if self.f_def in elementaries and type(arg) is float:
+                f = self.f_def
+                if f == 'sin':
+                    self.iv = math.sin(arg)
+                    return self.iv
+                if f == 'cos':
+                    self.iv = math.cos(arg)
+                    return self.iv
+                if f == 'sh':
+                    self.iv = math.sinh(arg)
+                    return self.iv
+                if f == 'ch':
+                    self.iv = math.cosh(arg)
+                    return self.iv
+                if f == 'inv':
+                    self.iv = 1 / arg
+                    return self.iv
+                if f == 'ln':
+                    self.iv = math.log(arg)
+                    return self.iv
+            else:
+                res = self.f_def + '[' + str(arg) + ';'
+                for i in range(1, len(self.args)):
+                    res += str(self.args[i].evaluate(gvd=gvd, symb=symb, library=library)) + ';'
+                res = res[:len(res) - 1] + ']'
+                if symb:
+                    self.iv = res
+                    return res
+                else:
+                    pass
+        else:
+            print(f'Impossible to evaluate var {self.name}')
+    
 class Monomial():
     # monomial is denoted by:
     # coefficient (single real number)
@@ -181,7 +224,39 @@ class Monomial():
                     continue
             return result.scalar_prod(self.coef)
             
-    
+    def evaluate(self, gvd:dict, symb=True, library=None):
+        if self.coef == 0:
+            return 0.
+        num_part = self.coef
+        symb_part = ''
+        for var in self.vars:
+            if var in gvd:
+                var_val = gvd[var].evaluate(gvd=gvd, symb=symb, library=library)
+                if type(var_val) is float:
+                    num_part *= var_val ** self.vars[var]
+                else:
+                    symb_part += var_val
+                    if self.vars[var] > 1:
+                        symb_part += '^' + str(self.vars[var])
+                    symb_part += '*'
+            else:
+                symb_part += var
+                if self.vars[var] > 1:
+                    symb_part += '^' + str(self.vars[var])
+                symb_part += '*'
+        if symb_part == '' or num_part == 0.:
+            return num_part
+        else:
+            if symb:
+                symb_part = symb_part[:len(symb_part) - 1]
+                if num_part != 1.:
+                    num_part = str(num_part)
+                    return num_part + '*' + symb_part
+                else:
+                    return symb_part
+            else:
+                pass
+
     # for output
     def printout(self):
         result = ''
@@ -286,6 +361,25 @@ class Polynomial():
         for mon in self.mons:
             result = result.add(self.mons[mon].derivative(var_name, global_var_dict))
         return result
+
+    def evaluate(self, gvd: dict, symb=True, library=None):
+        num_part = 0.
+        symb_part = ''
+        for mon in self.mons:
+            mon_val = self.mons[mon].evaluate(gvd=gvd, symb=symb, library=library)
+            if type(mon_val) is float:
+                num_part += mon_val
+            elif mon_val[0] == '-':
+                symb_part += mon_val
+            else:
+                symb_part += '+' + mon_val
+        if symb_part == '':
+            return num_part
+        elif symb_part[0] == '+':
+            symb_part = symb_part[1:]
+        if num_part == 0.:
+            return symb_part
+        return symb_part + '+' + str(num_part)
 
     # output
     def printout(self):

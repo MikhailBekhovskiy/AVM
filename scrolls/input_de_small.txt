@@ -1,8 +1,6 @@
 Mode: DE
-IV: t1 t2 t3
-dx1/dt1 = x2*sin[x1]
+Independent variables: t1; t2; t3
+IV: t1=0; t2=0; t3=0; x1=0
+dx1/dt1 = x1*sin[x1]
 dx1/dt2 = x1
 dx1/dt3 = 5
-dx2/dt1 = x1
-dx2/dt2 = 0
-dx2/dt3 = 0

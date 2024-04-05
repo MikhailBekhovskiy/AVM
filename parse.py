@@ -111,15 +111,27 @@ def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
     global_var_dict = dict()
     with open(f'scrolls/{infname}','r') as f:
         lines = f.readlines()
-    mode = lines[0].split(' ')[1].strip()
-    ind_vars = lines[1].split(' ')[1:]
+    mode = lines[0].split(':')[1].strip()
+    ind_vars = lines[1].split(':')[1].split(';')
     ind_vars[len(ind_vars) - 1]=ind_vars[len(ind_vars) - 1].strip()
-    for v in ind_vars:
-        global_var_dict[v] = Var(v)
+    if mode == 'DE':
+        ivs = dict()
+        iv_line = lines[2].split(':')[1]
+        iv_line = iv_line.split(';')
+        for iv in iv_line:
+            iv = iv.strip()
+            iv = iv.split('=')
+            ivs[iv[0]] = float(iv[1])
+            # print(iv)
+    for i in range(len(ind_vars)):
+        ind_vars[i] = ind_vars[i].strip(' ')
+        # print(v)
+        global_var_dict[ind_vars[i]] = Var(var_name=ind_vars[i], iv=ivs[ind_vars[i]])
     exprs = dict()
     if debug:
         print(f'Mode is {mode}')
         print(f'Independent variables are {ind_vars}')
+        print(f'Initial values: {ivs}')        
     if mode == 'F':
         for i in range(2, len(lines)):
             line = lines[i].split('=')
@@ -135,12 +147,12 @@ def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
             for f in exprs:
                 print(f'{f} = {exprs[f]}')
     else:
-        for i in range(2, len(lines)):
+        for i in range(3, len(lines)):
             line = lines[i].split('=')
             lhs = line[0].strip().split('/')
             x_i = lhs[0][1:]
             if x_i not in global_var_dict:
-                global_var_dict[x_i] = Var(x_i, var_deps=dict())
+                global_var_dict[x_i] = Var(var_name=x_i, var_deps=dict(), iv=ivs[x_i])
             t_j = lhs[1][1:]
             rhs = line[1][1:len(line[1])-1]
             if x_i not in exprs:

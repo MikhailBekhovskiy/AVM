@@ -33,7 +33,8 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
                 name = f'x{len(global_var_dict) - ivs_num + 1}'
             avs[func] = name
             cor_table[lib[0][fu][1]] = name
-            global_var_dict[name] = Var(name, dict(), polyargs)
+            global_var_dict[name] = Var(var_name=name, var_deps=dict(), var_args=polyargs, f_def=fu)
+            global_var_dict[name].evaluate(gvd=global_var_dict, symb=True, library=None)
             new_avs[func] = name
         else:
             cor_table[lib[0][fu][1]] = avs[func]
@@ -46,11 +47,11 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
             for v1 in lib[1][sec]:
                 if v1 in rhs:
                     rhs = rhs.replace(v1, cor_table[v1])
-            global_var_dict[name].var_deps[i_v] = parse_poly(rhs)[0]
+            global_var_dict[name].deps[i_v] = parse_poly(rhs)[0]
             vari = global_var_dict[name]
-            for i in range(len(vari.var_args)):
+            for i in range(len(vari.args)):
                 if f'p{i}' in rhs:
-                    global_var_dict[name].var_deps[i_v] = vari.var_deps[i_v].subs_poly(f'p{i}', vari.var_args[i])
+                    global_var_dict[name].deps[i_v] = vari.deps[i_v].subs_poly(f'p{i}', vari.args[i])
             if debug:
                 print(rhs)
     return new_avs
@@ -130,7 +131,7 @@ if __name__ == "__main__":
         for iv in ind:
             aVar = global_var_dict[avs[av]]
             der = aVar.derivative(iv, global_var_dict, debug=False)
-            global_var_dict[aVar.name].var_deps[iv] = der
+            global_var_dict[aVar.name].deps[iv] = der
             res = f'd{aVar.name}/d{iv} = {der.printout()}'
             # print(res)
     
