@@ -1,7 +1,7 @@
 from avreader import find_simple_func, parse_func, introduce_av, put_in_sys_av
 from library import library, lib_na
 from polynom import Var
-from parse import read_input, parse_poly, printout_poly_de, printout_poly_func
+from parse import read_input, parse_comp_poly, printout_poly_de, printout_poly_func
 sublib = lib_na
 
 def de_transform(system: dict, gvd: dict, ivs_num: int):
@@ -16,7 +16,7 @@ def de_transform(system: dict, gvd: dict, ivs_num: int):
                 foo = find_simple_func(system[x][t])
     for x in system:
         for t in system[x]:
-            poly_rhs = parse_poly(system[x][t])[0]
+            poly_rhs = parse_comp_poly(system[x][t])
             system[x][t] = poly_rhs
             gvd[x].deps[t] = poly_rhs
     return system, avs
@@ -32,7 +32,7 @@ def func_transform(funcs: dict, global_var_dict: dict, ivs_num: int):
             funcs = put_in_sys_av(navs, funcs, 'F')
             foo = find_simple_func(funcs[f])
     for f in funcs:
-        funcs[f] = parse_poly(funcs[f])[0]
+        funcs[f] = parse_comp_poly(funcs[f])
         global_var_dict[f] = Var(f, var_deps = dict())
     return funcs, avs
 
@@ -67,7 +67,7 @@ def initial_values(gvd: dict):
 
 if __name__=="__main__":
     # change this to the name of your file. it has to be stored in scrolls/'
-    input_name = 'input_small.txt'
+    input_name = 'input.txt'
     m, ivs, sys, gvd = read_input(infname = input_name, debug=True)
     # print(sys)
     # for v in gvd:

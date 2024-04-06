@@ -43,11 +43,11 @@ def find_simple_func(expr: str, start=0)->str:
     if i < len(expr) and expr[i] == '[':
         args = parse_name(expr, i+1, stop_symbols={']'})
         if poly_check(args[0]):
-            func = parse_name(expr, i-1, stop_symbols={' ', '*', '['}, backwards=True)[0]
+            func = parse_name(expr, i-1, stop_symbols={'(',' ', '*', '['}, backwards=True)[0]
             func += '[' + args[0] + ']'
         else:
             args = parse_name(expr, args[1] - 1, stop_symbols={'['}, backwards=True)
-            func = parse_name(expr, args[1] - 1, stop_symbols={' ', '*', '['}, backwards=True)[0]
+            func = parse_name(expr, args[1] - 1, stop_symbols={'(',' ', '*', '['}, backwards=True)[0]
             func += '[' + args[0] + ']'
     return func
 
@@ -89,12 +89,13 @@ def parse_mon(st: str, start: int, is_positive: bool, stop_symbs={' ', '+', '-'}
         var_pow_list.append((name, power))
     return Monomial(coef, var_pow_list), i    
 
+# for polynomials in canonical form
 def parse_poly(st:str, start=0) -> tuple[Polynomial, int]:
     mon_list = []
     is_positive = True
     i = start
     # polynomial ends at EOS or as function argument
-    while i < len(st) and st[i] != ']' and st[i] != ';':
+    while i < len(st) and st[i] != ']' and st[i] != ';' and st[i] != ')':
         # move to beginning of monomial and remember minus
         while i < len(st) and (st[i] == ' ' or st[i] == '+' or st[i] == '-'):
             if st[i] == '-':
@@ -107,6 +108,43 @@ def parse_poly(st:str, start=0) -> tuple[Polynomial, int]:
             is_positive = True
     return Polynomial(mon_list), i
 
+# for polynomials partially (or completely) factorized
+# find inner parentheses containing polynomial
+def low_level_poly(st: str, start=0):
+    i = start
+    res = None
+    while st[i] != ')' and i < len(st):
+        i += 1
+    if st[i] == ')':
+        p_finish = i
+        while st[i] != '(':
+            i -= 1
+        p_start = i + 1
+        res = st[p_start:p_finish]
+        res_poly = parse_poly(st=res)[0]
+    return res, res_poly
+
+def prep_factorized_poly(st: str, start=0):
+    subs = []
+    while '(' in st:
+        llp = low_level_poly(st=st, start=start)
+        s_name = f's{len(subs)}'
+        poly = llp[1]
+        subs.append((s_name, poly))
+        st = st.replace(f'({llp[0]})', s_name)
+    return st, subs
+
+def mass_subs(st: str, subs: list):
+    poly = parse_poly(st=st)[0]
+    for i in range(len(subs)-1, -1, -1):
+        poly = poly.subs_poly(subs[i][0], subs[i][1])
+    return poly
+
+def parse_comp_poly(st: str, start=0):
+    res = prep_factorized_poly(st=st, start=start)
+    res = mass_subs(res[0], res[1])
+    return res
+# read input files
 def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
     global_var_dict = dict()
     with open(f'scrolls/{infname}','r') as f:
@@ -200,4 +238,16 @@ def printout_poly_func(sys: dict):
 if __name__ == "__main__":
     # m,iv,e,gvd = read_input(infname = 'input_de_small.txt',debug=True)
     # print(gvd)
-    read_input_polytest(debug=True)
+    # read_input_polytest(debug=True)
+    with open('scrolls/poly_fact.txt', 'r') as f:
+        expr = f.readline()
+    print(expr)
+    # tmp0 = low_level_poly(expr)
+    # print(tmp0[0], tmp0[1].printout())
+    # tmp1 = prep_factorized_poly(expr)
+    # print(tmp1[0])
+    # tmp2 = mass_subs(tmp1[0], tmp1[1])
+    # print(tmp2.printout())
+    tmp = parse_comp_poly(expr)
+    print(tmp.printout())
+    #print(tmp[0])

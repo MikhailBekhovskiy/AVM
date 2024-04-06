@@ -2,7 +2,7 @@ from polynom import Polynomial, Var
 
 # TODO The proper library loading mechanism
 from library import library, get_ext_by_fname
-from parse import find_simple_func, parse_func, parse_poly
+from parse import find_simple_func, parse_func, parse_comp_poly
 
 
 # TODO testing;
@@ -19,7 +19,7 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
 
     polyargs = args.split(';')
     for i in range(len(polyargs)):
-        polyargs[i] = parse_poly(polyargs[i])[0]
+        polyargs[i] = parse_comp_poly(polyargs[i])
     
     # name all new AVs
     cor_table = dict()
@@ -48,7 +48,7 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
             for v1 in lib[1][sec]:
                 if v1 in rhs:
                     rhs = rhs.replace(v1, cor_table[v1])
-            global_var_dict[name].deps[i_v] = parse_poly(rhs)[0]
+            global_var_dict[name].deps[i_v] = parse_comp_poly(rhs)
             vari = global_var_dict[name]
             for i in range(len(vari.args)):
                 if f'p{i}' in rhs:
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     # calculate func derivatives
     poly_expr = dict()
     for i in range(len(exprs)):
-        poly_expr[f'y{i}'] = parse_poly(exprs[i])[0]
+        poly_expr[f'y{i}'] = parse_comp_poly(exprs[i])
     for poly in poly_expr:
         print(poly_expr[poly].printout())
     for foo in poly_expr:
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     print(avs)
     poly_expr = dict()
     for i in exprs:
-        poly_expr[i] = parse_poly(exprs[i])[0]
+        poly_expr[i] = parse_comp_poly(exprs[i])
     for poly in poly_expr:
         print(poly, '=', poly_expr[poly].printout())
     
