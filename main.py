@@ -1,9 +1,14 @@
+# main module; highest level organization of a program
 from avreader import find_simple_func, parse_func, introduce_av, put_in_sys_av
-from library import library, lib_na
+from library import lib_na
 from polynom import Var
 from parse import read_input, parse_comp_poly, printout_poly_de, printout_poly_func
+# sublibrary; in the future it should be loaded by library methods from external db
 sublib = lib_na
 
+# transform system of diff eqs to polynomial form
+# DIRTY modifies global variable dictionary by adding additional variables
+# after transformation adds de polynomial rhs as derivatives to corresponding Var objects dependencies dictionaries
 def de_transform(system: dict, gvd: dict, ivs_num: int):
     avs = dict()
     for x in system:
@@ -21,7 +26,8 @@ def de_transform(system: dict, gvd: dict, ivs_num: int):
             gvd[x].deps[t] = poly_rhs
     return system, avs
 
-
+# transform system of functions to polynomial form
+# DIRTY modifies global variable dictionary by adding additional variables
 def func_transform(funcs: dict, global_var_dict: dict, ivs_num: int):
     avs = dict()
     for f in funcs:
@@ -36,6 +42,8 @@ def func_transform(funcs: dict, global_var_dict: dict, ivs_num: int):
         global_var_dict[f] = Var(f, var_deps = dict())
     return funcs, avs
 
+# calculate all COMPLETE additional variables derivatives by independent variables
+# variable dictionary is filled with all needed data if program was properly initialized (see example input files)
 def av_derivatives(avs: dict, gvd: dict, ind_vars:list):
     res=dict()
     for av in avs:
@@ -47,7 +55,7 @@ def av_derivatives(avs: dict, gvd: dict, ind_vars:list):
             res[avs[av]][iv] = der
     return res
 
-# currently calculates all 1st order partial derivatives
+# calculates all 1st order partial derivatives for original functions
 def og_func_jacobi(sys: dict, ivs: list, gvd:dict) -> dict:
     res = dict()
     for f in sys:

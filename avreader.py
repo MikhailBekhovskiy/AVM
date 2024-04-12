@@ -1,12 +1,17 @@
-from polynom import Polynomial, Var
+# module realizing AVM algorithms
+from polynom import Var
 
 # TODO The proper library loading mechanism
+# currently library is a preloaded dictionary pair in library module
 from library import library, get_ext_by_fname
 from parse import find_simple_func, parse_func, parse_comp_poly
 
 
-# TODO testing;
-# function for filling dictionary with new AV by function symbolic description
+# by function symbolic description: read extension from library, introduce additional variables and add them to global variable dictionary
+# for DE mode calculate initial values for additional variables
+# target expressions invariant; 
+# DIRTY modifies global dictionaries
+# returns new_avs dictionary containing only avs from current step
 def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict, 
                  global_var_dict: dict[str:Var], mode='F', ivs_num=0, debug=False) -> dict:
     fnames = [f[0]]
@@ -57,8 +62,8 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
                 print(rhs)
     return new_avs
 
-# TODO testing
-# puts AV in user system
+
+# insert new additional variables in single str expression
 def put_in_av(new_avs: dict, expression: str)->str:
     new_exp = expression
     for func in new_avs:
@@ -66,6 +71,7 @@ def put_in_av(new_avs: dict, expression: str)->str:
             new_exp = new_exp.replace(func, new_avs[func])
     return new_exp
 
+# insert new additional variables in a system of expressions
 def put_in_sys_av(new_avs: dict, exprs: dict, mode: str)->dict:
     new_exprs = dict()
     for e in exprs:

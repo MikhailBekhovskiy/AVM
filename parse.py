@@ -1,6 +1,8 @@
+# utility module for generating polynom objects from strings
+# and initializing program from user input
 from polynom import Var, Monomial, Polynomial
 
-# get a number from string
+# read float from specified string index; utility
 def parse_num(st: str, start: int) -> tuple[float, int]:
     res = ''
     i = start
@@ -9,7 +11,7 @@ def parse_num(st: str, start: int) -> tuple[float, int]:
         i += 1
     return float(res), i
 
-# get a word from string from start index to stop symbol
+# read word (str) from specified string indes; utility
 def parse_name(st: str, start: int, stop_symbols={'^', '[', ']', ' ', '*'},
                backwards=False) -> tuple[str, int]:
     res = ''
@@ -26,15 +28,13 @@ def parse_name(st: str, start: int, stop_symbols={'^', '[', ']', ' ', '*'},
             i += 1
     return res, i
 
-# check whether string contains function definitions
-# function definitions must be followed by []
-# (for checking arguments polynomiality)
+# expression is polynomial if it doesn't have function names; function arguments are between [] square brackets
 def poly_check(expr: str) -> bool:
     if '[' in expr:
         return False
     return True
 
-# returns string containing full function expression (with [] and arguments)
+# returns string containing full function expression (with [] and arguments); av candidates detection
 def find_simple_func(expr: str, start=0)->str:
     i = start
     func = ''
@@ -51,12 +51,13 @@ def find_simple_func(expr: str, start=0)->str:
             func += '[' + args[0] + ']'
     return func
 
-# returns tuple (func_name, func_args)
+# returns tuple (func_name, func_args); utility
 def parse_func(func: str) -> tuple[str, str]:
     fname, i = parse_name(func, 0, stop_symbols={'['})
     args = parse_name(func, i + 1, stop_symbols={']'})[0]
     return (fname, args)
 
+# parse portion of expression between +/- and return corresponding Monomial; PURE (doesn't change global variables dictionary)
 def parse_mon(st: str, start: int, is_positive: bool, stop_symbs={' ', '+', '-'}) -> tuple[Monomial, int]:
     i = start
     var_pow_list = []
@@ -89,7 +90,7 @@ def parse_mon(st: str, start: int, is_positive: bool, stop_symbs={' ', '+', '-'}
         var_pow_list.append((name, power))
     return Monomial(coef, var_pow_list), i    
 
-# for polynomials in canonical form
+# function for parsing polynomial in normalized form (no partial factorization)
 def parse_poly(st:str, start=0) -> tuple[Polynomial, int]:
     mon_list = []
     is_positive = True
@@ -108,8 +109,8 @@ def parse_poly(st:str, start=0) -> tuple[Polynomial, int]:
             is_positive = True
     return Polynomial(mon_list), i
 
-# for polynomials partially (or completely) factorized
-# find inner parentheses containing polynomial
+# set of functions for parsing factorized polynomials and returning Polynomial object
+# detect completely defactorized polynomial inside the string; return Polynomial and its string representation for further replacement
 def low_level_poly(st: str, start=0):
     i = start
     res = None
@@ -124,6 +125,8 @@ def low_level_poly(st: str, start=0):
         res_poly = parse_poly(st=res)[0]
     return res, res_poly
 
+# iteratively introduce temporary variables instead of expression parts in () parentheses
+# return normalized string in terms of temporary variables and list of (tmp_var_name, Polynomial) pairs
 def prep_factorized_poly(st: str, start=0):
     subs = []
     while '(' in st:
@@ -134,17 +137,21 @@ def prep_factorized_poly(st: str, start=0):
         st = st.replace(f'({llp[0]})', s_name)
     return st, subs
 
+# substitute all temporary variables with corresponding polynomials and return Polynomial
 def mass_subs(st: str, subs: list):
     poly = parse_poly(st=st)[0]
     for i in range(len(subs)-1, -1, -1):
         poly = poly.subs_poly(subs[i][0], subs[i][1])
     return poly
 
+# main function for parsing complicated (partially or completely factorized) polynomials
 def parse_comp_poly(st: str, start=0):
     res = prep_factorized_poly(st=st, start=start)
     res = mass_subs(res[0], res[1])
     return res
-# read input files
+
+# read input files; returns mode of work (diff. eqs. or funcs.), list of independent variable names, 
+# dictionary of expressions and initialized global variable dictionary
 def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
     global_var_dict = dict()
     with open(f'scrolls/{infname}','r') as f:
@@ -208,6 +215,7 @@ def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
 
     return mode, ind_vars, exprs, global_var_dict
 
+# utility for algebra testing
 def read_input_polytest(infname='test_poly_subs.txt', debug=False):
     with open(f'scrolls/{infname}','r') as f:
         lines = f.readlines()
@@ -223,6 +231,7 @@ def read_input_polytest(infname='test_poly_subs.txt', debug=False):
         print(new.printout())
     return new
 
+# output of polynomial systems
 # DE system is 2 level dictionary
 def printout_poly_de(sys: dict):
     for f in sys:
@@ -234,7 +243,7 @@ def printout_poly_func(sys: dict):
     for f in sys:
         print(f'{f} = {sys[f].printout()}')
 
-
+# testing
 if __name__ == "__main__":
     # m,iv,e,gvd = read_input(infname = 'input_de_small.txt',debug=True)
     # print(gvd)

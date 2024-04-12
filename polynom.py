@@ -1,32 +1,32 @@
-# this is a reworked polynomial module
-# storing variables by names and separating them from power in polynomials, thus
-# reducing redundancy;
-# power derivative calculation is at monomial level, chaining with variable derivatives stored in memory;
-# variable derivatives are either taken from input system
-# or calculated at introducing additional variables step using stored library info;
-# independent variable derivative is 1 or 0
-# dependent variable derivative is stored as dependency and is simply read
+# module realizing computer symbolic algebra and differentiation for multivariate polynomials
 import math
-elementaries={'sin', 'cos', 'ch', 'sh', 'inv', 'ln'}
+elementaries={'sin', 'cos', 'ch', 'sh', 'inv', 'ln', 'exp'}
+
+# this class represents all variables, including dependent (additional)
+# objects of this class contain known Polynomial derivatives, employing philosophy of AVM algorithms
+# by having temporary libraries of their own
 class Var():
-    # variable is denoted by:
-    # name (for output purposes); name MUST be always given
-    # dependencies dict (derivative substitutions for chain-rule calculations); might be empty if variable is independent;
     def __init__(self, var_name: str, var_deps=None, var_args=[], iv=None, f_def=None):
+        # variable name is an identifier in global variable dictionary and symbolic handle in expressions
         self.name = var_name
-        # dictionary which contains only polynomial derivatives by independent variables 
-        # and positional arguments (in case of additional variable)
-        # polynomial derivatives contain variables ALREADY present in global_var_dictionary
-        # this will be handled at preprocessing step and during introduction of AVs
+        # dictionary with known derivatives; keys are either existing var_names or numeric for positional arguments (partial derivatives)
         self.deps = var_deps
+        # list of Polynomial arguments; RECURSION; at lowest level Vars don't have polynomial arguments (original LHS functions and independent variables)
         self.args = var_args
+        # initial value of a variable; numeric if given or variable represents elementary function; symbolic if variable represents special function
         self.iv = iv
+        # which function is represented by variable; for initial values recalculation
         self.f_def = f_def
+        # if variable is dependent, derivative dictionary is initialized
         if var_args !=[] and var_deps is None:
             self.deps = dict()
         
         
-    # TODO testing
+    # 1. if var_names are same, return Polynomial 1
+    # 2. if Var is independent (uninitialized deps dict), return Polynomial 0
+    # 3. if Var is dependent and derivative has been calculated, return result from deps dict
+    # 4. if Var is dependent with unknown variable, use chain rule; all lower level Polynomial derivatives must be known
+    # this function is RECURSIVE, since it calls Polynomial arguments; lowest level Polynomials consist of Vars with no arguments;
     def derivative(self, var_name: str, global_var_dict: dict, debug=False):
         if self.name == var_name:
             if debug:
@@ -59,7 +59,7 @@ class Var():
                         print(f'Result is {result.printout()}')
                 return result
         
-
+    # utility function
     def printout(self):
         print(f'Variable {self.name}; dependent: {self.deps is not None}')
         if self.args != []:
@@ -72,7 +72,8 @@ class Var():
                 else:
                     print(f'Derivative by {dep} is {self.deps[dep].printout()}')
         print()
-
+    
+    # initial values recalculation
     def evaluate(self, gvd:dict, symb=True, library=None):
         if self.iv is not None:
             return self.iv
@@ -98,6 +99,9 @@ class Var():
                 if f == 'ln':
                     self.iv = math.log(arg)
                     return self.iv
+                if f == 'exp':
+                    self.iv = math.exp(arg)
+                    return self.iv
             else:
                 res = self.f_def + '[' + str(arg) + ';'
                 for i in range(1, len(self.args)):
@@ -111,14 +115,14 @@ class Var():
         else:
             print(f'Impossible to evaluate var {self.name}')
     
+# Monomial is a set of powered variables with numeric coefficient
 class Monomial():
-    # monomial is denoted by:
-    # coefficient (single real number)
-    # vars dict (dictionary keyed by var_names with powers as values) for hierarchical calculations using Var subclass
-    # signature (string containing sorted var names and their powers; for fast similarity check during arithmetics)
     def __init__(self, mon_coeff=0., var_pow_list=None):
+        # numerical coefficient
         self.coef = mon_coeff
+        # dictionary of (var_name: integer power) pairs
         self.vars = dict()
+        # string representation of monomial for quick algebra
         self.signature = ''
         if self.coef != 0. and var_pow_list is not None:
             var_pow_list.sort(key=lambda x:x[0])
@@ -126,6 +130,7 @@ class Monomial():
                 self.signature += str(var[0]) + str(var[1])
                 self.vars[var[0]] = var[1]
 
+    # update signature after substitution
     def recalc_signature(self):
         self.signature = ''
         var_pow_list = list(self.vars.items())
@@ -134,6 +139,7 @@ class Monomial():
             for var in var_pow_list:
                 self.signature += str(var[0]) + str(var[1])
 
+    # create a deep copy of object for algebra
     def copy(self):
         coef = self.coef
         vars = None
@@ -143,6 +149,7 @@ class Monomial():
                 vars.append((var, self.vars[var]))
         return Monomial(coef, vars)
 
+    # utility function for substitution
     def remove_var(self, var_name, debug=False):
         res = self.copy()
         if var_name in res.vars:
@@ -153,7 +160,7 @@ class Monomial():
                 print('No such variable in monomial')
         return res
 
-    # called when normalizing poly after arithmetic or differentiation
+    # normalize Poly during algebra or differentiation
     def add_similar(self, mon):
         new_coef = self.coef + mon.coef
         if len(self.vars) == 0 :
@@ -162,6 +169,7 @@ class Monomial():
             varlist = list(self.vars.items())
         return Monomial(mon_coeff=new_coef, var_pow_list=varlist)
     
+    # algebra
     def scalar_prod(self, a: float):
         coef = a * self.coef
         if len(self.vars) >0:
@@ -192,6 +200,7 @@ class Monomial():
                         var_pow_list.append((var, mon.vars[var]))
             return Monomial(new_coef, var_pow_list)
     
+    # substitute Polynomial instead of var_name; RECURSIVE
     def subs_poly(self, var_name: str, poly, debug = False):
         res = Polynomial()
         if var_name in self.vars:
@@ -199,8 +208,7 @@ class Monomial():
             res = res.prod(poly.power(int(self.vars[var_name])))
         return res
 
-    # returns Poly
-    # complete derivative calculated using chain rule
+    # COMPLETE derivative calculated using chain rule
     def derivative(self, var_name: str, global_var_dict: dict):
         result = Polynomial()
         if len(self.vars) == 0:
@@ -223,7 +231,8 @@ class Monomial():
                 else:
                     continue
             return result.scalar_prod(self.coef)
-            
+
+    # utility for initial values recalculation        
     def evaluate(self, gvd:dict, symb=True, library=None):
         if self.coef == 0:
             return 0.
@@ -278,16 +287,16 @@ class Monomial():
                     result += f'{var}*'
             return result[:len(result) - 1]
 
+# Polynomial is a dictionary of (monomial_sign: Monomial) with methods
 class Polynomial():
-    # Polynomial is simply a list of monomials (so its always normalized)
-    # denoted by dict keyed by monomials signatures (for arithmetic purposes) with Monomial values
-    # normalization occurs during substitution immediately
     def __init__(self, mon_list=None):
+        # specific dictionary structure simplifies algebra
         self.mons = dict()
         if mon_list is not None:
             for mon in mon_list:
                 self.mons[mon.signature] = mon.copy()
     
+    # deep copy for algebra
     def copy(self):
         mon_list = None
         if self.mons is not None:
@@ -296,8 +305,7 @@ class Polynomial():
                 mon_list.append(self.mons[mon].copy())
         return Polynomial(mon_list)
     
-    # multivariate polynomial arithmetics
-    # returns normalized polynomial
+    # algebra
     def add(self, poly):
         if len(poly.mons) == 0:
             return self.copy()
@@ -346,6 +354,7 @@ class Polynomial():
             res = res.prod(self)
         return res
 
+    # substitute Polynomial instead of variable; for non-autonomous systems support
     def subs_poly(self, var_name, poly, debug=False):
         res = self.copy()
         for m in self.mons:
@@ -356,12 +365,14 @@ class Polynomial():
         return res
 
     # derivative of a polynomial is simply the sum of it's monomial's derivatives
+    # RECURSIVE 
     def derivative(self, var_name: str, global_var_dict: dict):
         result = Polynomial()
         for mon in self.mons:
             result = result.add(self.mons[mon].derivative(var_name, global_var_dict))
         return result
 
+    # initial values calculation (additional variables have polynomial arguments)
     def evaluate(self, gvd: dict, symb=True, library=None):
         num_part = 0.
         symb_part = ''

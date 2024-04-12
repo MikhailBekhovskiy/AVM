@@ -1,6 +1,8 @@
-# TODO module for handling loading library from external DB modifiable by user
-# currently dictionary representations (preloaded so to speak) are stored here
+# module containing loaded library of functions with corresponding polynomial de systems
+# currently hardcoded
+# TODO implement db loading mechanism
 
+# utility; convenient handling for improved code readability
 def get_ext_by_fname(fname: str, lib: dict) -> list:
     return lib[0][fname][2]
 
@@ -26,7 +28,7 @@ library_names = {
     'hbp3': (6, 'f4', [])
 }
 
-# currently autonomous
+# autonomous library; first version for testing
 library_RHS = {
     1:{
         'f1': {
@@ -115,7 +117,9 @@ library_RHS = {
 
 library = (library_names, library_RHS)
 
-# non_autonomous variant
+# non_autonomous library; SUPPORTED, should be preferred
+# positional arguments are represented by pi, where i is int id of independent variable (p0, p1 and so on)
+# non-autonomous system examples are sections 4-6
 library_names_na = {
     'sin': (1, 'f1', ['cos']),
     'cos': (1, 'f2', ['sin']),
