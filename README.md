@@ -11,5 +11,7 @@ References to be added.
 
 
 Currently program works for transforming systems of functions and calculating their 1st order symbolic derivatives or transforming PDE systems to polynomial form. Your input system has to be described in 'scrolls/[input_file]' in a fashion similar to examples (input_small, input_big, input_de_small, input_de_big). 
-NB! F or DE mode, independent variables explicitly specified and blank line at the end (user-friendliness is not a priority ATM, expressions are parsed with \n last symbol in mind). Readme will be updated as needed.
+NB! F or DE mode, independent variables explicitly specified and blank line at the end (user-friendliness is not a priority ATM, expressions are parsed with \n last symbol in mind). 
+Special functions may be defined with parameters. Parameters values may be symbolic or numeric. See example input files.
+Readme will be updated as needed.
 Launch main.py, after changing input file name there as required
