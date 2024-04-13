@@ -103,9 +103,9 @@ class Var():
                     self.iv = math.exp(arg)
                     return self.iv
             else:
-                res = self.f_def + '[' + str(arg) + ';'
+                res = self.f_def + '[' + str(arg) + ','
                 for i in range(1, len(self.args)):
-                    res += str(self.args[i].evaluate(gvd=gvd, symb=symb, library=library)) + ';'
+                    res += str(self.args[i].evaluate(gvd=gvd, symb=symb, library=library)) + ','
                 res = res[:len(res) - 1] + ']'
                 if symb:
                     self.iv = res

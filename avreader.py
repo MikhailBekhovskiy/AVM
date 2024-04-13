@@ -22,7 +22,7 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
         fnames.append(fu)
     sec = lib[0][fnames[0]][0]
 
-    polyargs = args.split(';')
+    polyargs = args.split(',')
     for i in range(len(polyargs)):
         polyargs[i] = parse_comp_poly(polyargs[i])
     

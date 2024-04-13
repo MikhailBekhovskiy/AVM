@@ -65,6 +65,7 @@ def og_func_jacobi(sys: dict, ivs: list, gvd:dict) -> dict:
             gvd[f].deps[iv] = res[f][iv]
     return res
 
+# print initial_values for the DE system; they will have been calculated by de_transform already;
 def initial_values(gvd: dict):
     for var in gvd:
         if gvd[var].iv is not None:
