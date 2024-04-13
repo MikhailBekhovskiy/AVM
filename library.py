@@ -121,20 +121,20 @@ library = (library_names, library_RHS)
 # positional arguments are represented by pi, where i is int id of independent variable (p0, p1 and so on)
 # non-autonomous system examples are sections 4-6
 library_names_na = {
-    'sin': (1, 'f1', ['cos']),
-    'cos': (1, 'f2', ['sin']),
-    'ln': (2, 'f1', ['inv']),
-    'inv': (2, 'f2', []),
-    'sh': (3, 'f1', ['ch']),
-    'ch': (3, 'f2', ['sh']),
-    'EK': (4, 'f1', ['EKs', 'EKc', 'EKi']),
-    'EKs': (4, 'f2', ['EKc', 'EKi']),
-    'EKc': (4, 'f3', ['EKs', 'EKi']),
-    'EKi': (4, 'f4', ['EKs', 'EKc']),
-    'DV': (5, 'f2', ['Dv']),
-    'Dv': (5, 'f1', ['DV']),
-    'Hb': (6, 'f1', ['Hbi']),
-    'Hbi': (6, 'f2', ['Hb'])
+    'sin': (1, 'f1', ['cos'], 0),
+    'cos': (1, 'f2', ['sin'], 0),
+    'ln': (2, 'f1', ['inv'], 0),
+    'inv': (2, 'f2', [], 0),
+    'sh': (3, 'f1', ['ch'], 0),
+    'ch': (3, 'f2', ['sh'], 0),
+    'EK': (4, 'f1', ['EKs', 'EKc', 'EKi'], 0),
+    'EKs': (4, 'f2', ['EKc', 'EKi'], 0),
+    'EKc': (4, 'f3', ['EKs', 'EKi'], 0),
+    'EKi': (4, 'f4', ['EKs', 'EKc'], 0),
+    'DV': (5, 'f2', ['Dv'], 3),
+    'Dv': (5, 'f1', ['DV'], 3),
+    'Hb': (6, 'f1', ['Hbi'], 0),
+    'Hbi': (6, 'f2', ['Hb'], 0)
 }
 
 library_RHS_na = {
@@ -185,7 +185,7 @@ library_RHS_na = {
             0: 'f2'
         },
         'f2':{
-            0: '-p0^2*f1 - p0*f1 - f1'
+            0: '-(s0*p0^2 + s1*p0 + s2)*f1'
         }
     },
     6: {

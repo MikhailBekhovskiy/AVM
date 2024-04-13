@@ -52,10 +52,17 @@ def find_simple_func(expr: str, start=0)->str:
     return func
 
 # returns tuple (func_name, func_args); utility
-def parse_func(func: str) -> tuple[str, str]:
+def parse_func(func: str, debug=False) -> tuple[str, str, str]:
+    params = ''
     fname, i = parse_name(func, 0, stop_symbols={'['})
+    if ';' in func:
+        params, i = parse_name(func, i+1, stop_symbols={';'})
     args = parse_name(func, i + 1, stop_symbols={']'})[0]
-    return (fname, args)
+    if debug:
+        print(f'Function {fname}')
+        print(f'Parameters {params}')
+        print(f' Arguments {args}')
+    return (fname, args, params)
 
 # parse portion of expression between +/- and return corresponding Monomial; PURE (doesn't change global variables dictionary)
 def parse_mon(st: str, start: int, is_positive: bool, stop_symbs={' ', '+', '-'}) -> tuple[Monomial, int]:
@@ -149,6 +156,7 @@ def parse_comp_poly(st: str, start=0):
     res = prep_factorized_poly(st=st, start=start)
     res = mass_subs(res[0], res[1])
     return res
+
 
 # read input files; returns mode of work (diff. eqs. or funcs.), list of independent variable names, 
 # dictionary of expressions and initialized global variable dictionary

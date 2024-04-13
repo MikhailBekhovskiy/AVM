@@ -12,10 +12,11 @@ from parse import find_simple_func, parse_func, parse_comp_poly
 # target expressions invariant; 
 # DIRTY modifies global dictionaries
 # returns new_avs dictionary containing only avs from current step
-def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict, 
+def introduce_av(f: tuple[str, str, str], lib: tuple[dict, dict], avs: dict, 
                  global_var_dict: dict[str:Var], mode='F', ivs_num=0, debug=False) -> dict:
     fnames = [f[0]]
     args = f[1]
+    params = f[2]
     new_avs = dict()
     ext = get_ext_by_fname(fnames[0], lib)
     for fu in ext:
@@ -25,11 +26,16 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
     polyargs = args.split(',')
     for i in range(len(polyargs)):
         polyargs[i] = parse_comp_poly(polyargs[i])
-    
+    paramvals = params.split(',')
+    for i in range(len(paramvals)):
+        paramvals[i] = parse_comp_poly(paramvals[i])
     # name all new AVs
     cor_table = dict()
     for fu in fnames:
-        func = fu + '[' + args + ']'
+        if params != '':
+            func = fu + '[' + params + ';' + args + ']'
+        else:
+            func = fu + '['+ args + ']'
         if func not in avs:
             # name = f'q{len(avs)}'
             if mode == 'F':
@@ -38,7 +44,7 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
                 name = f'x{len(global_var_dict) - ivs_num + 1}'
             avs[func] = name
             cor_table[lib[0][fu][1]] = name
-            global_var_dict[name] = Var(var_name=name, var_deps=dict(), var_args=polyargs, f_def=fu)
+            global_var_dict[name] = Var(var_name=name, var_deps=dict(), var_args=polyargs, f_def=fu, params=params)
             if mode == 'DE':
                 global_var_dict[name].evaluate(gvd=global_var_dict, symb=True, library=None)
             new_avs[func] = name
@@ -53,13 +59,15 @@ def introduce_av(f: tuple[str,str], lib: tuple[dict, dict], avs: dict,
             for v1 in lib[1][sec]:
                 if v1 in rhs:
                     rhs = rhs.replace(v1, cor_table[v1])
-            global_var_dict[name].deps[i_v] = parse_comp_poly(rhs)
+            rhs = parse_comp_poly(rhs)
             vari = global_var_dict[name]
             for i in range(len(vari.args)):
-                if f'p{i}' in rhs:
-                    global_var_dict[name].deps[i_v] = vari.deps[i_v].subs_poly(f'p{i}', vari.args[i])
+                rhs = rhs.subs_poly(f'p{i}', vari.args[i])
+            for i in range(len(paramvals)):
+                rhs = rhs.subs_poly(f's{i}', paramvals[i])
             if debug:
                 print(rhs)
+            global_var_dict[name].deps[i_v] = rhs
     return new_avs
 
 

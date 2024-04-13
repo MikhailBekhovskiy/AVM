@@ -6,7 +6,7 @@ elementaries={'sin', 'cos', 'ch', 'sh', 'inv', 'ln', 'exp'}
 # objects of this class contain known Polynomial derivatives, employing philosophy of AVM algorithms
 # by having temporary libraries of their own
 class Var():
-    def __init__(self, var_name: str, var_deps=None, var_args=[], iv=None, f_def=None):
+    def __init__(self, var_name: str, var_deps=None, var_args=[], iv=None, f_def=None, params = None):
         # variable name is an identifier in global variable dictionary and symbolic handle in expressions
         self.name = var_name
         # dictionary with known derivatives; keys are either existing var_names or numeric for positional arguments (partial derivatives)
@@ -17,6 +17,8 @@ class Var():
         self.iv = iv
         # which function is represented by variable; for initial values recalculation
         self.f_def = f_def
+        # parameters for initial values recalculations
+        self.params = params
         # if variable is dependent, derivative dictionary is initialized
         if var_args !=[] and var_deps is None:
             self.deps = dict()
@@ -103,7 +105,11 @@ class Var():
                     self.iv = math.exp(arg)
                     return self.iv
             else:
-                res = self.f_def + '[' + str(arg) + ','
+                if self.params != '':
+                    paramstr = self.params + ';'
+                else:
+                    paramstr = ''
+                res = self.f_def + '[' + paramstr + str(arg) + ','
                 for i in range(1, len(self.args)):
                     res += str(self.args[i].evaluate(gvd=gvd, symb=symb, library=library)) + ','
                 res = res[:len(res) - 1] + ']'
