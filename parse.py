@@ -174,7 +174,11 @@ def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
         for iv in iv_line:
             iv = iv.strip()
             iv = iv.split('=')
-            ivs[iv[0]] = float(iv[1])
+            try:
+                val = float(iv[1])
+            except ValueError:
+                val = iv[1]
+            ivs[iv[0]] = val
             # print(iv)
     for i in range(len(ind_vars)):
         ind_vars[i] = ind_vars[i].strip(' ')

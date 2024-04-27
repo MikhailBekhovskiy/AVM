@@ -52,7 +52,7 @@ def introduce_av(f: tuple[str, str, str], lib: tuple[dict, dict], avs: dict,
             cor_table[lib[0][fu][1]] = avs[func]
 
     # get dependencies using assigned names
-    for v in lib[1][sec]:
+    for v in cor_table:
         for i_v in lib[1][sec][v]:
             name = cor_table[v]
             rhs = lib[1][sec][v][i_v]
