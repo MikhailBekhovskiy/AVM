@@ -1,0 +1,4 @@
+Mode: DE
+Independent variables: t
+Initial values: t=0; x=x0
+dx/dt = a*x*(x - L)*inv[N + x]

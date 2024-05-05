@@ -1,0 +1,9 @@
+Mode: DE
+Independent variables: t
+Initial values: t=0; g1=g01; g2=g02; g3=g03; p1=p01; p2=p02; p3=p03
+dg1/dt = p1
+dg2/dt = p2
+dg3/dt = p3
+dp1/dt = -k^2*(m0 + m1)*g1*isqrt[g1^2 + g2^2 + g3^2]^3
+dp2/dt = -k^2*(m0 + m1)*g2*isqrt[g1^2 + g2^2 + g3^2]^3
+dp3/dt = -k^2*(m0 + m1)*g3*isqrt[g1^2 + g2^2 + g3^2]^3

@@ -1,0 +1,3 @@
+Mode: DE
+Independent variables: 
+Initial values: 

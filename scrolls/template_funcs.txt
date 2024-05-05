@@ -1,0 +1,2 @@
+Mode: F
+Independent variables: 
