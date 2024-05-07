@@ -76,7 +76,7 @@ def initial_values(gvd: dict):
 
 if __name__=="__main__":
     # change this to the name of your file. it has to be stored in scrolls/'
-    input_name = 'get_started.txt'
+    input_name = 'input.txt'
     m, ivs, sys, gvd = read_input(infname = input_name, debug=True)
     # print(sys)
     # for v in gvd:
