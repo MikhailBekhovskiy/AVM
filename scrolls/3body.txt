@@ -1,0 +1,21 @@
+Mode: DE
+Independent variables: t
+Initial values: t=0
+dx1/dt = p1
+dy1/dt = r1
+dz1/dt = q1
+dx2/dt = p2
+dy2/dt = r2
+dz2/dt = q2
+dx3/dt = p3
+dy3/dt = r3
+dz3/dt = q3
+dp1/dt = G*m2*(x2 - x1)*isqrt[(x1 - x2)^2 + (y1 - y2)^2 + (z1 - z2)^2]^3 + G*m3*(x3 - x1)*isqrt[(x1 - x3)^2 + (y1 - y3)^2 + (z1 - z3)^2]^3
+dr1/dt = G*m2*(y2 - y1)*isqrt[(x1 - x2)^2 + (y1 - y2)^2 + (z1 - z2)^2]^3 + G*m3*(y3 - y1)*isqrt[(x1 - x3)^2 + (y1 - y3)^2 + (z1 - z3)^2]^3
+dq1/dt = G*m2*(z2 - z1)*isqrt[(x1 - x2)^2 + (y1 - y2)^2 + (z1 - z2)^2]^3 + G*m3*(z3 - z1)*isqrt[(x1 - x3)^2 + (y1 - y3)^2 + (z1 - z3)^2]^3
+dp2/dt = G*m1*(x1 - x2)*isqrt[(x1 - x2)^2 + (y1 - y2)^2 + (z1 - z2)^2]^3 + G*m3*(x3 - x2)*isqrt[(x2 - x3)^2 + (y2 - y3)^2 + (z2 - z3)^2]^3
+dr2/dt = G*m1*(y1 - y2)*isqrt[(x1 - x2)^2 + (y1 - y2)^2 + (z1 - z2)^2]^3 + G*m3*(y3 - y2)*isqrt[(x2 - x3)^2 + (y2 - y3)^2 + (z2 - z3)^2]^3
+dq2/dt = G*m1*(z1 - z2)*isqrt[(x1 - x2)^2 + (y1 - y2)^2 + (z1 - z2)^2]^3 + G*m3*(z3 - z2)*isqrt[(x2 - x3)^2 + (y2 - y3)^2 + (z2 - z3)^2]^3
+dp3/dt = G*m1*(x1 - x3)*isqrt[(x1 - x3)^2 + (y1 - y3)^2 + (z1 - z3)^2]^3 + G*m2*(x2 - x3)*isqrt[(x2 - x3)^2 + (y2 - y3)^2 + (z2 - z3)^2]^3
+dr3/dt = G*m1*(y1 - y3)*isqrt[(x1 - x3)^2 + (y1 - y3)^2 + (z1 - z3)^2]^3 + G*m2*(y2 - y3)*isqrt[(x2 - x3)^2 + (y2 - y3)^2 + (z2 - z3)^2]^3
+dq3/dt = G*m1*(z1 - z3)*isqrt[(x1 - x3)^2 + (y1 - y3)^2 + (z1 - z3)^2]^3 + G*m2*(z2 - z3)*isqrt[(x2 - x3)^2 + (y2 - y3)^2 + (z2 - z3)^2]^3

@@ -1,6 +1,6 @@
 Mode: DE
 Independent variables: t
-Initial values: t=0; g1=g01; g2=g02; g3=g03; p1=p01; p2=p02; p3=p03
+Initial values: t=0
 dg1/dt = p1
 dg2/dt = p2
 dg3/dt = p3

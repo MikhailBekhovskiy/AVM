@@ -213,7 +213,10 @@ def read_input(infname='input.txt', debug=False)->tuple[str,list,dict,dict]:
             lhs = line[0].strip().split('/')
             x_i = lhs[0][1:]
             if x_i not in global_var_dict:
-                global_var_dict[x_i] = Var(var_name=x_i, var_deps=dict(), iv=ivs[x_i])
+                if x_i in ivs:
+                    global_var_dict[x_i] = Var(var_name=x_i, var_deps=dict(), iv=ivs[x_i])
+                else:
+                    global_var_dict[x_i] = Var(var_name=x_i, var_deps=dict(), iv='PV')
             t_j = lhs[1][1:]
             rhs = line[1][1:len(line[1])-1]
             if x_i not in exprs:
