@@ -13,6 +13,11 @@ priorities = {
     '^': 3
 }
 
+def check_num(token):
+    for l in token:
+        if not (l >='0' and l <='9' or l == '.'):
+            return False
+    return True
 
 def get_token(inp:str, i:int):
     while i < len(inp) and inp[i] == ' ':
@@ -42,11 +47,12 @@ def inf2post(inp: str):
     stack = []
     res = []
     funcs = dict()
+    p_token = None
     while i < len(inp):
         token, i = get_token(inp, i)
         if not(token in bin_ops or token == delim or token in parenth or (i < len(inp) and inp[i] == '[')):
             res.append(token)
-        elif token == '-' and (i == 1 or inp[i-2] in {'(', '[', ';'}):
+        elif token == '-' and (p_token is None or p_token in {';', '(', '['}):
             stack.append('u-')
         elif i < len(inp) and inp[i] == '[':
             stack.append(token)
@@ -67,6 +73,7 @@ def inf2post(inp: str):
             p = stack.pop()
             if p == '[':
                 res.append(stack.pop())
+        p_token = token
     while len(stack) > 0:
         res.append(stack.pop())
     return res, funcs
@@ -75,39 +82,49 @@ def post2node(p: list, funcs: dict, debug=False):
     stack = []
     for token in p:
         if not(token in funcs or token in bin_ops or token == 'u-'):
-            n = Node(name=token, children=[])
-            # if debug:
-            #    print('Variable node')
-            #    print(n.name)
+            if not check_num(token):
+                n = Node(name=token, children=[])
+            else:
+                n = Node(val=float(token))
             stack.append(n)
         else:
-            n = Node(name=token, children=[])
-            if token in funcs:
-                args = funcs[token]
-            elif token in bin_ops:
-                args = 2
+            if token == 'u-':
+                stack[len(stack)-1] = -stack[len(stack)-1]
             else:
-                args = 1
-            n.kids = [None] * args
-            if debug:
-                print('Creation check')
-                print(n.name, [kid for kid in n.kids])
-                print('Arguments: ', args)
-            for i in range(args):
-                n.kids[args - 1 - i] = stack.pop()
-                n.kids[args - 1 - i].parent = n
-            stack.append(n)
-            if debug:
-                print('Operation node')
-                print(n.name, [kid.name for kid in n.kids])
+                if token in funcs:
+                    args = funcs[token]
+                else:
+                    args = 2
+                operands = [None] * args
+                for i in range(args):
+                    operands[args - 1 - i] = stack.pop()
+                if token == '+':
+                    stack.append(operands[0] + operands[1])
+                elif token == '-':
+                    stack.append(operands[0] - operands[1])
+                elif token == '*':
+                    stack.append(operands[0] * operands[1])
+                elif token == '^':
+                    stack.append(operands[0] ** operands[1])
+                elif token == '/':
+                    stack.append(operands[0] / operands[1])
+                else:
+                    stack.append(Node(name=token, children=operands))
     return stack[0]
 
 
 
 if __name__=="__main__":
-    expression = 'a*x*(x - L)*inv[N + x]'
+    expression = 't2*f4*f5^3*(f3*f6*f15 - f2*f18)'
     expression, funcs = inf2post(expression)
     print('Found functions:\n', funcs)
     print('RPN\n', expression)
     expression = post2node(expression, funcs, debug=False)
     print('Reverse parsing:\n', expression)
+    isit = expression.is_poly(funcs)
+    print('Poly check:\n', isit)
+    if isit:
+        print('Derivative check:')
+        dexp = expression.poly_derivative('f18')
+        print(dexp)
+    
