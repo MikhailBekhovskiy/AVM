@@ -16,7 +16,7 @@ priorities = {
 }
 
 class Node():
-    def __init__(self, name=None, val=None, children=[], deps=dict()):
+    def __init__(self, name=None, val=None, children=[], deps=dict(), params=[]):
         if name == None:
             self.name = 'num'
             if val == None:
@@ -28,6 +28,7 @@ class Node():
             self.value = val
         self.kids = children
         self.dependencies = deps
+        self.parameters = params
 
     def __str__(self):
         if self.name == 'num':
@@ -53,8 +54,12 @@ class Node():
             return nam + s
         else:
             res = self.name + '['
+            if self.parameters != []:
+                for p in self.parameters:
+                    res += p.__str__() + ', '
+                res = res[:-2] + '; '
             for k in self.kids:
-                res += k.__str__() + '; '
+                res += k.__str__() + ', '
             res = res[:len(res)-2]
             return res + ']'
         
@@ -77,6 +82,9 @@ class Node():
         else:
             for i in range(len(self.kids)):
                 if not self.kids[i].__eq__(b.kids[i]):
+                    return False
+            for i in range(len(self.parameters)):
+                if not self.parameters[i].__eq__(b.parameters[i]):
                     return False
             return True
         
@@ -175,6 +183,45 @@ class Node():
                 print('Unforeseen complications')
                 return None
 
+    def find_poly_func(self, funcs: dict, cands=[]):
+        if len(self.kids) == 0:
+            return cands
+        else:
+            if self.name in funcs:
+                cand = True
+                for k in self.kids:
+                    if not k.is_poly(funcs):
+                        cand = False
+                        break
+                if cand == True:
+                    return cands + [self]
+            for k in self.kids:
+                cands = k.find_poly_func(funcs, cands)
+            return cands
+        
+    def substitute(self, exp_old, exp_new):
+        if self == exp_old:
+            return exp_new
+        else:
+            for i in range(len(self.kids)):
+                self.kids[i] = self.kids[i].substitute(exp_old, exp_new)
+        return self
+
+    def bulk_substitute(self, exp_olds, exp_news):
+        for i in range(len(exp_olds)):
+            self = self.substitute(exp_olds[i], exp_news[i])
+        return self
+
+    # should be FIXED to account for the library
+    def polynomize(self, funcs):
+        sub = dict()
+        i = 0
+        while not self.is_poly(funcs):
+            cands = self.find_poly_func(funcs)
+            self = self.substitute(cands[0], Node(name=f's{i}'))
+            sub[f's{i}'] = cands[0]
+            i += 1
+        return self, sub
 
 if __name__ == "__main__":
     pass
