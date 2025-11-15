@@ -2,7 +2,7 @@
 from proto_tree import Node
 
 bin_ops = {'*', '+', '-', '/', '^'}
-delim = ';'
+delim = {';', ','}
 parenth = {'(', ')', '[', ']'}
 priorities = {
     '+': 0,
@@ -23,24 +23,34 @@ def get_token(inp:str, i:int):
     while i < len(inp) and inp[i] == ' ':
         i += 1
     t = ''
-    if i < len(inp) and (inp[i] in bin_ops or inp[i] == ';' or inp[i] in parenth):
+    if i < len(inp) and (inp[i] in bin_ops or inp[i] in delim or inp[i] in parenth):
         return inp[i], i+1
     else:
-        while i < len(inp) and not(inp[i] in bin_ops or inp[i] == ';' or inp[i] == ' ' or inp[i] in parenth):
+        while i < len(inp) and not(inp[i] in bin_ops or inp[i] in delim or inp[i] == ' ' or inp[i] in parenth):
             t += inp[i]
             i += 1
         return t, i
 
 def calc_args(inp: str, i: int):
-    res = 0
+    args = 0
+    pars = 0
+    arg_switch = False
     while i < len(inp) and inp[i] != ']':
         if inp[i] == '[':
             while i < len(inp) and inp[i] != ']':
                 i += 1
         if i < len(inp) and inp[i] == ';':
-            res += 1
+            arg_switch = True
+        elif i < len(inp) and inp[i] == ',':
+            if arg_switch:
+                args += 1
+            else:
+                pars += 1
         i += 1
-    return res + 1
+    if arg_switch:
+        return pars + 1, args + 1
+    else:
+        return 0, pars + 1 
 
 def inf2post(inp: str):
     i = 0
@@ -50,15 +60,15 @@ def inf2post(inp: str):
     p_token = None
     while i < len(inp):
         token, i = get_token(inp, i)
-        if not(token in bin_ops or token == delim or token in parenth or (i < len(inp) and inp[i] == '[')):
+        if not(token in bin_ops or token in delim or token in parenth or (i < len(inp) and inp[i] == '[')):
             res.append(token)
-        elif token == '-' and (p_token is None or p_token in {';', '(', '['}):
+        elif token == '-' and (p_token is None or p_token in {';', '(', '[', ','}):
             stack.append('u-')
         elif i < len(inp) and inp[i] == '[':
             stack.append(token)
             if token not in funcs:
                 funcs[token] = calc_args(inp, i + 1)
-        elif token == delim:
+        elif token in delim:
             while stack[len(stack) - 1] != '[':
                 res.append(stack.pop())
         elif token in bin_ops:
@@ -92,12 +102,15 @@ def post2node(p: list, funcs: dict, debug=False):
                 stack[len(stack)-1] = -stack[len(stack)-1]
             else:
                 if token in funcs:
-                    args = funcs[token]
+                    pars, args = funcs[token][0], funcs[token][1]
                 else:
-                    args = 2
+                    pars, args = 0, 2
                 operands = [None] * args
+                params = [None] * pars
                 for i in range(args):
                     operands[args - 1 - i] = stack.pop()
+                for i in range(pars):
+                    params[pars - 1 - i] = stack.pop()
                 if token == '+':
                     stack.append(operands[0] + operands[1])
                 elif token == '-':
@@ -109,22 +122,22 @@ def post2node(p: list, funcs: dict, debug=False):
                 elif token == '/':
                     stack.append(operands[0] / operands[1])
                 else:
-                    stack.append(Node(name=token, children=operands))
+                    stack.append(Node(name=token, children=operands, params=params))
     return stack[0]
 
+def s2node(inp: str):
+    pol, funcs = inf2post(inp)
+    n = post2node(pol, funcs)
+    return n, funcs
 
 
 if __name__=="__main__":
-    expression = 't2*f4*f5^3*(f3*f6*f15 - f2*f18)'
-    expression, funcs = inf2post(expression)
-    print('Found functions:\n', funcs)
-    print('RPN\n', expression)
-    expression = post2node(expression, funcs, debug=False)
-    print('Reverse parsing:\n', expression)
-    isit = expression.is_poly(funcs)
-    print('Poly check:\n', isit)
-    if isit:
-        print('Derivative check:')
-        dexp = expression.poly_derivative('f18')
-        print(dexp)
-    
+    expression = 'x3^3*sin[cos[a*ln[x2]^2 + b*x3]] + x3^3*b*ln[x2]^4 + sin[a*ln[x2]^2 + b*x3]^5 + Dv[g^2, 1, -1; x1]'
+    e, f = s2node(expression)
+    print('Original:\n', e)
+    print('Found funcs:\n', f)
+    e, hist = e.polynomize(f)
+    print('New expression:\n', e)
+    print('Substitutes:')
+    for s in hist:
+        print(s, ' is ', hist[s])
