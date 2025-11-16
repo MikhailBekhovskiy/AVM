@@ -245,6 +245,14 @@ class Node():
                 self.kids[i] = self.kids[i].open_parenth()
             return self
 
+    def find_monomials(self, res=[]):
+        if self.name == '*':
+            res.append(self)
+        else:
+            for k in self.kids:
+                k.find_monomials(res)
+        return res
+
     # should be FIXED to account for the library
     def polynomize(self, funcs):
         sub = dict()

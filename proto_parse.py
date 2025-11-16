@@ -132,14 +132,22 @@ def s2node(inp: str):
 
 
 if __name__=="__main__":
-    expression = '(a1*x1^2 + b1*x2 + c1)*sin[Hb[x1,x2,x3]] + (c1*x3^2 + b1*x1 + a1)*cos[Hb[x1,x2,x3]]'
+    expression = '(a+b)^3'
     e, f = s2node(expression)
     print('Original:\n', e)
     print('Found funcs:\n', f)
-    e, hist = e.polynomize(f)
-    print('New expression:\n', e)
-    print('Substitutes:')
-    for s in hist:
-        print(s, ' is ', hist[s])
+    if not e.is_poly(f):
+        e, hist = e.polynomize(f)
+        print('New expression:\n', e)
+        print('Substitutes:')
+        for s in hist:
+            print(s, ' is ', hist[s])
+    print('Unfactorized expression:')
     e = e.open_parenth()
     print(e)
+    m = e.find_monomials()
+    print(f'Found {len(m)} monomials:')
+    mons = ''
+    for M in m:
+        mons += M.__str__() + ', '
+    print(mons[:-2])
