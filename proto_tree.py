@@ -231,6 +231,15 @@ class Node():
             else:
                 self = l - r
             return self.open_parenth()
+        elif self.name == '^' and self.kids[1].name == 'num':
+            i = self.kids[1].value
+            base = self.kids[0]
+            res = base
+            while i > 1:
+                res = Node(name = '*', children=[res, base])
+                res = res.open_parenth()
+                i -= 1
+            return res.open_parenth()
         else:
             for i in range(len(self.kids)):
                 self.kids[i] = self.kids[i].open_parenth()
