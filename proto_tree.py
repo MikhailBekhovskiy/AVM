@@ -212,6 +212,30 @@ class Node():
             self = self.substitute(exp_olds[i], exp_news[i])
         return self
 
+    def open_parenth(self):
+        if len(self.kids) == 0:
+            return self
+        elif self.name == '*' and self.kids[0].name in {'+', '-'}:
+            l = self.kids[1] * self.kids[0].kids[0]
+            r = self.kids[1] * self.kids[0].kids[1]
+            if self.kids[0].name == '+':
+                self = l + r
+            else:    
+                self = l - r
+            return self.open_parenth()
+        elif self.name == '*' and self.kids[1].name in {'+', '-'}:
+            l = self.kids[0] * self.kids[1].kids[0]
+            r = self.kids[0] * self.kids[1].kids[1]
+            if self.kids[1].name == '+':
+                self = l + r
+            else:
+                self = l - r
+            return self.open_parenth()
+        else:
+            for i in range(len(self.kids)):
+                self.kids[i] = self.kids[i].open_parenth()
+            return self
+
     # should be FIXED to account for the library
     def polynomize(self, funcs):
         sub = dict()

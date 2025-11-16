@@ -6,6 +6,20 @@
 def get_ext_by_fname(fname: str, lib: dict) -> list:
     return lib[0][fname][2]
 
+def expand_sub_lib(funcs: list, lib: tuple, sub_names=dict(), sub_syst=dict()) -> tuple:
+    names = lib[0]
+    systems = lib[1]
+    for f in funcs:
+        if f not in sub_names:
+            ext = names[f][2]
+            num = names[f][0]
+            new_num = len(sub_syst) + 1
+            sub_names[f] = (new_num, names[f][1], names[f][2], names[f][3])
+            for e in ext:
+                sub_names[e] = (new_num, names[f][1], names[f][2], names[f][3])
+            sub_syst[new_num] = systems[num]
+    return sub_names, sub_syst
+
 library_names = {
     'sin': (1, 'f1', ['cos']),
     'cos': (1, 'f2', ['sin']),
