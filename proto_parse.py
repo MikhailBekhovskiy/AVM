@@ -1,5 +1,5 @@
 # new version of parsing base on notations and tree
-from proto_tree import Node
+from proto_tree import *
 
 bin_ops = {'*', '+', '-', '/', '^'}
 delim = {';', ','}
@@ -132,7 +132,7 @@ def s2node(inp: str):
 
 
 if __name__=="__main__":
-    expression = '(a+b)^3'
+    expression = 'x3^3*sin[cos[a*ln[x2]^2 + b*x3]] + x3^3*b*ln[x2]^4 + sin[a*ln[x2]^2 + b*x3]^5 + Dv[g^2, 1, -1; x1]'
     e, f = s2node(expression)
     print('Original:\n', e)
     print('Found funcs:\n', f)
@@ -146,8 +146,11 @@ if __name__=="__main__":
     e = e.open_parenth()
     print(e)
     m = e.find_monomials()
-    print(f'Found {len(m)} monomials:')
-    mons = ''
-    for M in m:
-        mons += M.__str__() + ', '
-    print(mons[:-2])
+    print(f'Found {len(m)} monomials!')
+    m = get_mon_descs(m)
+    m = simplify_by_descs(m)
+    print(f'Simplified to {len(m)} monomials:')
+    print(m)
+    e = node_by_descs(m)
+    print(f'Transformed expression:')
+    print(e)

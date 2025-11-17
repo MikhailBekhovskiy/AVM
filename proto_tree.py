@@ -246,12 +246,26 @@ class Node():
             return self
 
     def find_monomials(self, res=[]):
-        if self.name == '*':
+        if self.name == '*' or len(self.kids) == 0:
             res.append(self)
         else:
             for k in self.kids:
                 k.find_monomials(res)
         return res
+
+    def get_mon_desc(self, desc=dict(), coef=1.):
+        if len(self.kids) == 0:
+            if self.name == 'num':
+                coef *= self.value
+            else:
+                if self.name in desc:
+                    desc[self.name] += 1
+                else:
+                    desc[self.name] = 1
+        else:
+            for k in self.kids:
+                desc, coef = k.get_mon_desc(desc, coef)
+        return desc, coef
 
     # should be FIXED to account for the library
     def polynomize(self, funcs):
@@ -263,6 +277,48 @@ class Node():
             sub[f's{i}'] = cands[0]
             i += 1
         return self, sub
+
+def get_mon_descs(mons: list[Node]) -> list[list]:
+    res = [None] * len(mons)
+    for i in range(len(mons)):
+        res[i] = [dict(), 1.]
+        res[i][0], res[i][1] = mons[i].get_mon_desc(res[i][0], res[i][1])
+    return res
+
+def simplify_by_descs(mons: list[list]) -> list[dict]:
+    pairs = 0
+    for i in range(len(mons)):
+        for j in range(i+1, len(mons)):
+            if mons[i] != None and mons[j] != None and mons[i][0] == mons[j][0]:
+                mons[i][1] += mons[j][1]
+                mons[j] = None
+                pairs += 1
+    res = [None] * (len(mons) - pairs)
+    i = 0
+    for m in mons:
+        if m != None:
+            res[i] = m
+            i += 1
+    return res
+
+def node_by_desc(desc: list) -> Node:
+    res = None
+    for v in desc[0]:
+        nod = Node(name=v) ** Node(val=desc[0][v])
+        if not type(res) is Node:
+            res = nod
+        else:
+            res *= nod
+    return Node(val=desc[1]) * res
+
+def node_by_descs(descs: list) -> Node:
+    res = None
+    for m in descs:
+        if not type(res) is Node:
+            res = node_by_desc(m)
+        else:
+            res += node_by_desc(m)
+    return res
 
 if __name__ == "__main__":
     pass
