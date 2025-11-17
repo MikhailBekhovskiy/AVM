@@ -1,5 +1,6 @@
-Mode: DE
-Independent variables: t
-Initial values: t=0; x1=x0; x2=y0
-dx1/dt = a*x1^2*inv[N + x1] - b*x1*x2
-dx2/dt = -c*x2 + d*x1*x2
+dx1/dt1 = (a1*x1^2 + b1*x2 + c1)*sin[Hb[x1,x2,x3]] + (c1*x3^2 + b1*x1 + a1)*cos[Hb[x1,x2,x3]]
+dx1/dt2 = (a2*x1^3 + b2*x3 + c2)*sin[Hb[x1,x2,x3]] + (c2*x3^2 + b2*x2 + a2)*cos[Hb[x1,x2,x3]]
+dx2/dt1 = (a3*x1^2 + b3*x2 + c3)*sin[Hb[x1,x2,x3]] + (c3*x3^2 + b3*x1 + a3)*cos[Hb[x1,x2,x3]]
+dx2/dt2 = (a4*x1^3 + b4*x3 + c4)*sin[Hb[x1,x2,x3]] + (c4*x3^2 + b4*x2 + a4)*cos[Hb[x1,x2,x3]]
+dx3/dt1 = (a5*x1^2 + b5*x2 + c5)*sin[Hb[x1,x2,x3]] + (c5*x3^2 + b5*x1 + a5)*cos[Hb[x1,x2,x3]]
+dx3/dt2 = (a6*x1^3 + b6*x3 + c6)*sin[Hb[x1,x2,x3]] + (c6*x3^2 + b6*x2 + a6)*cos[Hb[x1,x2,x3]]

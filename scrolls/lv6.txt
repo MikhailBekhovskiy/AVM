@@ -1,5 +1,2 @@
-Mode: DE
-Independent variables: t
-Initial values: t=t0; x=x0; y=y0
 dx/dt = a*x - b*x*y*inv[(1 + A*x)*(1 + B*y)]
 dy/dt = -c*y + d*x*y*inv[(1 + A*x)*(1 + B*y)]
