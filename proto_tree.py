@@ -4,16 +4,7 @@
 # Node is a token of several possible origins: dependent variable (with children and dependencies)
 # independent variable (without children and dependencies, i.e. all its derivatives are 0, might be numeric or a parameter)
 # n-nary operation (functions to be replaced by additional variables, +, *, - to stay)
-binary_ops = {'+', '-', '*', '/', '^'}
-unary_ops = {'u-'}
-priorities = {
-    '+': 0,
-    '-': 0,
-    'u-': 1,
-    '*': 2,
-    '/': 2,
-    '^': 3
-}
+from proto_parse import *
 
 class Node():
     def __init__(self, name=None, val=None, children=[], deps=dict(), params=[]):
@@ -320,5 +311,68 @@ def node_by_descs(descs: list) -> Node:
             res += node_by_desc(m)
     return res
 
+def post2node(p: list, funcs: dict, debug=False) -> Node:
+    stack = []
+    for token in p:
+        if not(token in funcs or token in binary_ops or token == 'u-'):
+            if not check_num(token):
+                n = Node(name=token, children=[])
+            else:
+                n = Node(val=float(token))
+            stack.append(n)
+        else:
+            if token == 'u-':
+                stack[len(stack)-1] = -stack[len(stack)-1]
+            else:
+                if token in funcs:
+                    pars, args = funcs[token][0], funcs[token][1]
+                else:
+                    pars, args = 0, 2
+                operands = [None] * args
+                params = [None] * pars
+                for i in range(args):
+                    operands[args - 1 - i] = stack.pop()
+                for i in range(pars):
+                    params[pars - 1 - i] = stack.pop()
+                if token == '+':
+                    stack.append(operands[0] + operands[1])
+                elif token == '-':
+                    stack.append(operands[0] - operands[1])
+                elif token == '*':
+                    stack.append(operands[0] * operands[1])
+                elif token == '^':
+                    stack.append(operands[0] ** operands[1])
+                elif token == '/':
+                    stack.append(operands[0] / operands[1])
+                else:
+                    stack.append(Node(name=token, children=operands, params=params))
+    return stack[0]
+
+def s2node(inp: str, funcs=dict()) -> Node:
+    pol, funcs = inf2post(inp, funcs)
+    n = post2node(pol, funcs)
+    return n, funcs
+
 if __name__ == "__main__":
-    pass
+    expression = 'x3^3*sin[cos[a*ln[x2]^2 + b*x3]] + x3^3*b*ln[x2]^4 + sin[a*ln[x2]^2 + b*x3]^5 + Dv[g^2, 1, -1; x1]'
+    e, f = s2node(expression)
+    print('Original:\n', e)
+    print('Found funcs:\n', f)
+    if not e.is_poly(f):
+        e, hist = e.polynomize(f)
+        print('New expression:\n', e)
+        print('Substitutes:')
+        for s in hist:
+            print(s, ' is ', hist[s])
+    print('Unfactorized expression:')
+    e = e.open_parenth()
+    print(e)
+    m = e.find_monomials()
+    print(f'Found {len(m)} monomials!')
+    m = get_mon_descs(m)
+    m = simplify_by_descs(m)
+    print(f'Simplified to {len(m)} monomials:')
+    print(m)
+    e = node_by_descs(m)
+    print(f'Transformed expression:')
+    print(e)
