@@ -1,5 +1,6 @@
 # class for system description
 from proto_tree import *
+from library import *
 
 # dxi/dti = f(x)
 def str2eq(inp: str, funcs=dict()) -> tuple[str, str, Node, dict]:
@@ -33,7 +34,9 @@ def file_scanner(filename='scrolls/input.txt') -> list:
     return res
 
 class System():
-    def __init__(self, desc: list):
+    def __init__(self, desc=[], filename='scrolls/input.txt'):
+        if desc == []:
+            desc = file_scanner(filename)
         self.dep_vars = set()
         self.ind_vars = set()
         self.eqs = dict()
@@ -63,10 +66,121 @@ class System():
                 res += f'd{mv}/d{sv} = ' + str(self.eqs[mv][sv]) + '\n'
         return res[:-1]
 
+    def is_poly(self):
+        for mv in self.dep_vars:
+            for sv in self.ind_vars:
+                if mv in self.eqs and sv in self.eqs[mv]:
+                    if not self.eqs[mv][sv].is_poly(self.funcs):
+                        return False
+        return True
+
+    def add_eq(self, mv, sv, rhs):
+        if mv not in self.dep_vars:
+            self.dep_vars.add(mv)
+        if sv not in self.ind_vars:
+            self.ind_vars.add(sv)
+        self.eqs[mv][sv] = rhs
+        return self
+
+    def substitute(self, old_exp, new_exp):
+        for mv in self.dep_vars:
+            for sv in self.ind_vars:
+                if mv in self.eqs and sv in self.eqs[mv]:
+                    self.eqs[mv][sv] = self.eqs[mv][sv].substitute(old_exp, new_exp)
+        return self
+
+    def get_non_poly_rhs(self):
+        for mv in self.dep_vars:
+            for sv in self.ind_vars:
+                if mv in self.eqs and sv in self.eqs[mv]:
+                    if not self.eqs[mv][sv].is_poly(self.funcs):
+                        return self.eqs[mv][sv]
+        return None
+
+    def change_var_name(self, old_var, new_var):
+        self.eqs[new_var] = dict()
+        for mv in self.dep_vars:
+            for sv in self.ind_vars:
+                if mv == old_var:
+                    self.eqs[new_var][sv] = self.eqs[mv][sv].substitute(Node(name=old_var), Node(name=new_var))
+                else:
+                    self.eqs[mv][sv] = self.eqs[mv][sv].substitute(Node(name=old_var), Node(name=new_var))
+        del self.eqs[old_var]
+        self.dep_vars.remove(old_var)
+        self.dep_vars.add(new_var)
+        return self
+
+    def insert_av(self, loaded_lib):
+        S = self
+        L = loaded_lib
+        replaced = []
+        while not S.is_poly():
+            E = S.get_non_poly_rhs()
+            cand = [E.find_poly_func(S.funcs)[0]]
+            ext = L[0][cand[0].name][2]
+            cand += [None] * len(ext)
+            for i in range(len(ext)):
+                cand[i+1] = cand[0].copy()
+                cand[i+1].name = ext[i]
+            for c in cand:
+                vname = f's{len(S.dep_vars) + 1}'
+                replaced.append((vname, c))
+                lib_name = L[0][c.name][1]
+                L[0][c.name][1] = vname
+                L[1][L[0][c.name][0]] = L[1][L[0][c.name][0]].change_var_name(lib_name, vname)
+                nmv = Node(name=vname)
+                S = S.substitute(c, nmv)
+                S.dep_vars.add(nmv.name)
+        return S, L, replaced
+
+    def polynomize(self, loaded_lib):
+        while not self.is_poly():
+            E = self.get_non_poly_rhs()
+            cands = E.find_poly_func(self.funcs)
+            return cands
+
+    def av_der(self, sv: str, av: tuple, loaded_lib: tuple):
+        avn = av[0]
+        avf = av[1]
+        lib_name = loaded_lib[0][avf.name]
+        lib_sys = loaded_lib[1][lib_name[0]].eqs
+        args = avf.kids
+        arg_ders = [a.poly_derivative(sv, self.eqs) for a in args]
+        pos_ders = [None] * len(arg_ders)
+        res = Node(val=0.)
+        if len(avf.kids) == 1:
+            pos_ders[0] = lib_sys[avn]['t'].substitute(Node(name='t'), avf.kids[0])
+        else:
+            for i in range(len(avf.kids)):
+                pos_ders[i] = lib_sys[avn][f't{i+1}'].substitute(Node(name=f't{i+1}'), avf.kids[i])
+        for i in range(len(avf.kids)):
+            res += arg_ders[i] * pos_ders[i]
+        return res
+
+    def av_ders(self, avs: list, loaded_lib: tuple):
+        for av in avs:
+            self.eqs[av[0]] = dict()
+            for sv in self.ind_vars:
+                self.eqs[av[0]][sv] = self.av_der(sv, av, loaded_lib)
+        return self
+
+
+def load_lib_systems(lib: tuple):
+    res = [None] * len(lib[1])
+    for i in range(len(lib[1])):
+        res[i] = System(desc=lib[1][i])
+    return res
+
 
 
 
 if __name__ == "__main__":
-    desc = file_scanner()
-    S = System(desc)
+    S = System()
+    L = expand_sub_lib(S.funcs, lib_na)
+    L = L[0], load_lib_systems(L)
+    S, L, replaced = S.insert_av(L)
+    S = S.av_ders(replaced, L)
     print(S)
+    print('Additional variables definition:')
+    for r in replaced:
+        print(r[0], ' = ', r[1])

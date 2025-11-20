@@ -7,7 +7,7 @@
 from proto_parse import *
 
 class Node():
-    def __init__(self, name=None, val=None, children=[], deps=dict(), params=[]):
+    def __init__(self, name=None, val=None, children=[], params=[]):
         if name == None:
             self.name = 'num'
             if val == None:
@@ -18,7 +18,6 @@ class Node():
             self.name = name
             self.value = val
         self.kids = children
-        self.dependencies = deps
         self.parameters = params
 
     def __str__(self):
@@ -147,14 +146,14 @@ class Node():
         else:
             return Node(name='^', children=[self, b])
 
-    def poly_derivative(self, var):
+    def poly_derivative(self, var, system = dict()):
         if len(self.kids) == 0:
             if self.name == var:
                 return Node(val=1.)
-            elif var not in self.dependencies or self.name == 'num':
-                return Node(val=0.)
+            elif self.name in system and var in system[self.name]:
+                return system[self.name][var]
             else:
-                return self.dependencies[var]
+                return Node(val=0.)
         else:
             k_ders = [None] * len(self.kids)
             for i in range(len(self.kids)):
@@ -258,6 +257,11 @@ class Node():
                 desc, coef = k.get_mon_desc(desc, coef)
         return desc, coef
 
+    def copy(self):
+        if len(self.kids) == 0:
+            return Node(name=self.name, val=self.value)
+        else:
+            return Node(name=self.name, children=[k.copy() for k in self.kids])
     # should be FIXED to account for the library
     def polynomize(self, funcs):
         sub = dict()
