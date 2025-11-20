@@ -1,11 +1,7 @@
-# module containing loaded library of functions with corresponding polynomial de systems
-# currently hardcoded
-# TODO implement db loading mechanism
+# module containing example of pre-loaded library and functions for selecting only needed sections
 
-# utility; convenient handling for improved code readability
-def get_ext_by_fname(fname: str, lib: dict) -> list:
-    return lib[0][fname][2]
 
+# function to select needed systems from read section;
 def expand_sub_lib(funcs: set, lib: tuple, sub_names=dict(), sub_syst=[]) -> tuple:
     names = lib[0]
     systems = lib[1]
@@ -22,8 +18,7 @@ def expand_sub_lib(funcs: set, lib: tuple, sub_names=dict(), sub_syst=[]) -> tup
 
 
 
-# non_autonomous library; SUPPORTED, should be preferred
-# positional arguments are represented by pi, where i is int id of independent variable (p0, p1 and so on)
+# example of read (pre-loaded; pre-selected) non_autonomous library section;
 # non-autonomous system examples are sections 4-6
 library_names_na = {
     'sin': [0, 'f1', ['cos'], 0],

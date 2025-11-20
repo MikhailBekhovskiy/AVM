@@ -13,12 +13,14 @@ priorities = {
     '^': 3
 }
 
+# check if token is numeric
 def check_num(token: str) -> bool:
     for l in token:
         if not (l >='0' and l <='9' or l == '.'):
             return False
     return True
 
+# read token from input expression
 def get_token(inp:str, i:int) -> tuple[str, int]:
     while i < len(inp) and inp[i] == ' ':
         i += 1
@@ -31,6 +33,7 @@ def get_token(inp:str, i:int) -> tuple[str, int]:
             i += 1
         return t, i
 
+# calculate number of arguments and parametres of function token
 def calc_args(inp: str, i: int) -> tuple[int, int]:
     args = 0
     pars = 0
@@ -52,6 +55,7 @@ def calc_args(inp: str, i: int) -> tuple[int, int]:
     else:
         return 0, pars + 1 
 
+# convert infix input to postfix and detect functions
 def inf2post(inp: str, funcs=dict()) -> tuple[list, dict]:
     i = 0
     stack = []

@@ -1,4 +1,4 @@
-# class for system description
+# class for system description; currently only DE systems are supported
 from proto_tree import *
 from library import *
 
@@ -23,6 +23,7 @@ def str2eq(inp: str, funcs=dict()) -> tuple[str, str, Node, dict]:
     rhs = s2node(rhs, funcs)
     return main_var, sec_var, rhs[0], rhs[1]
 
+# generate DE system by text description
 def file_scanner(filename='scrolls/input.txt') -> list:
     with open(filename, 'r') as f:
         res = f.readlines()
@@ -34,6 +35,7 @@ def file_scanner(filename='scrolls/input.txt') -> list:
     return res
 
 class System():
+    # constructor optionally takes filename
     def __init__(self, desc=[], filename='scrolls/input.txt'):
         if desc == []:
             desc = file_scanner(filename)
@@ -66,6 +68,7 @@ class System():
                 res += f'd{mv}/d{sv} = ' + str(self.eqs[mv][sv]) + '\n'
         return res[:-1]
 
+    # check whether system is polynomial
     def is_poly(self):
         for mv in self.dep_vars:
             for sv in self.ind_vars:
@@ -74,6 +77,7 @@ class System():
                         return False
         return True
 
+    # add equation to the system
     def add_eq(self, mv, sv, rhs):
         if mv not in self.dep_vars:
             self.dep_vars.add(mv)
@@ -82,6 +86,7 @@ class System():
         self.eqs[mv][sv] = rhs
         return self
 
+    # systemwide substitution
     def substitute(self, old_exp, new_exp):
         for mv in self.dep_vars:
             for sv in self.ind_vars:
@@ -89,6 +94,7 @@ class System():
                     self.eqs[mv][sv] = self.eqs[mv][sv].substitute(old_exp, new_exp)
         return self
 
+    # get right hand side with functions in it
     def get_non_poly_rhs(self):
         for mv in self.dep_vars:
             for sv in self.ind_vars:
@@ -97,6 +103,7 @@ class System():
                         return self.eqs[mv][sv]
         return None
 
+    # system wide variable change
     def change_var_name(self, old_var, new_var):
         self.eqs[new_var] = dict()
         for mv in self.dep_vars:
@@ -110,6 +117,7 @@ class System():
         self.dep_vars.add(new_var)
         return self
 
+    # introduce and insert additional variables to polynomize systems
     def insert_av(self, loaded_lib):
         S = self
         L = loaded_lib
@@ -133,30 +141,27 @@ class System():
                 S.dep_vars.add(nmv.name)
         return S, L, replaced
 
-    def polynomize(self, loaded_lib):
-        while not self.is_poly():
-            E = self.get_non_poly_rhs()
-            cands = E.find_poly_func(self.funcs)
-            return cands
-
+    # calculate single additional variable derivative
     def av_der(self, sv: str, av: tuple, loaded_lib: tuple):
         avn = av[0]
         avf = av[1]
         lib_name = loaded_lib[0][avf.name]
-        lib_sys = loaded_lib[1][lib_name[0]].eqs
+        lib_sys = loaded_lib[1][lib_name[0]]
         args = avf.kids
         arg_ders = [a.poly_derivative(sv, self.eqs) for a in args]
         pos_ders = [None] * len(arg_ders)
         res = Node(val=0.)
         if len(avf.kids) == 1:
-            pos_ders[0] = lib_sys[avn]['t'].substitute(Node(name='t'), avf.kids[0])
+            pos_ders[0] = lib_sys.eqs[avn]['t'].substitute(Node(name='t'), avf.kids[0])
         else:
+            lib_inds = [Node(name=f't{i+1}') for i in range(len(avf.kids))]
             for i in range(len(avf.kids)):
-                pos_ders[i] = lib_sys[avn][f't{i+1}'].substitute(Node(name=f't{i+1}'), avf.kids[i])
+                pos_ders[i] = lib_sys.eqs[avn][f't{i+1}'].bulk_substitute(lib_inds, avf.kids)
         for i in range(len(avf.kids)):
             res += arg_ders[i] * pos_ders[i]
         return res
 
+    # calculate all additional variable derivatives
     def av_ders(self, avs: list, loaded_lib: tuple):
         for av in avs:
             self.eqs[av[0]] = dict()
@@ -164,7 +169,7 @@ class System():
                 self.eqs[av[0]][sv] = self.av_der(sv, av, loaded_lib)
         return self
 
-
+# generate system from library descriptor
 def load_lib_systems(lib: tuple):
     res = [None] * len(lib[1])
     for i in range(len(lib[1])):

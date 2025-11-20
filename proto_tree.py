@@ -7,6 +7,7 @@
 from proto_parse import *
 
 class Node():
+    # initialize by name or numeric value; parametres are stored for function nodes
     def __init__(self, name=None, val=None, children=[], params=[]):
         if name == None:
             self.name = 'num'
@@ -52,8 +53,9 @@ class Node():
                 res += k.__str__() + ', '
             res = res[:len(res)-2]
             return res + ']'
-        
-    def is_poly(self, funcs: dict):
+
+    # check whether expression is polynomial (contains functions; functions are detected during parsing)  
+    def is_poly(self, funcs: dict) -> bool:
         if self.name in funcs or self.name == '/' or (self.name == '^' and self.kids[1].name != 'num'):
             return False
         elif len(self.kids) == 0:
@@ -146,6 +148,7 @@ class Node():
         else:
             return Node(name='^', children=[self, b])
 
+    # get derivative of polynomial expression accounting for polynomial de system
     def poly_derivative(self, var, system = dict()):
         if len(self.kids) == 0:
             if self.name == var:
@@ -173,6 +176,7 @@ class Node():
                 print('Unforeseen complications')
                 return None
 
+    # find functions with polynomial arguments; finds all candidates
     def find_poly_func(self, funcs: dict, cands=[]):
         if len(self.kids) == 0:
             return cands
@@ -188,7 +192,8 @@ class Node():
             for k in self.kids:
                 cands = k.find_poly_func(funcs, cands)
             return cands
-        
+    
+    # substite expression
     def substitute(self, exp_old, exp_new):
         if self == exp_old:
             return exp_new
@@ -197,11 +202,13 @@ class Node():
                 self.kids[i] = self.kids[i].substitute(exp_old, exp_new)
         return self
 
+    # substitute several expressions (used in additional variables insertion step)
     def bulk_substitute(self, exp_olds, exp_news):
         for i in range(len(exp_olds)):
             self = self.substitute(exp_olds[i], exp_news[i])
         return self
 
+    # open parenthesis for normalization; 
     def open_parenth(self):
         if len(self.kids) == 0:
             return self
@@ -235,7 +242,8 @@ class Node():
                 self.kids[i] = self.kids[i].open_parenth()
             return self
 
-    def find_monomials(self, res=[]):
+    # find monomials IN POLYNOMIAL EXPRESSION WITHOUT PARENTHESIS
+    def find_monomials(self, res=[]) -> list:
         if self.name == '*' or len(self.kids) == 0:
             res.append(self)
         else:
@@ -243,7 +251,8 @@ class Node():
                 k.find_monomials(res)
         return res
 
-    def get_mon_desc(self, desc=dict(), coef=1.):
+    # generate monomial descriptor for normalization
+    def get_mon_desc(self, desc=dict(), coef=1.) -> tuple[dict, float]:
         if len(self.kids) == 0:
             if self.name == 'num':
                 coef *= self.value
@@ -257,12 +266,14 @@ class Node():
                 desc, coef = k.get_mon_desc(desc, coef)
         return desc, coef
 
+    # deep recursive copy
     def copy(self):
         if len(self.kids) == 0:
             return Node(name=self.name, val=self.value)
         else:
             return Node(name=self.name, children=[k.copy() for k in self.kids])
-    # should be FIXED to account for the library
+    
+    # expression polynomization; 
     def polynomize(self, funcs):
         sub = dict()
         i = 0
@@ -273,6 +284,7 @@ class Node():
             i += 1
         return self, sub
 
+# get descriptors from UNFACTORIZED POLYNOMIAL
 def get_mon_descs(mons: list[Node]) -> list[list]:
     res = [None] * len(mons)
     for i in range(len(mons)):
@@ -280,6 +292,7 @@ def get_mon_descs(mons: list[Node]) -> list[list]:
         res[i][0], res[i][1] = mons[i].get_mon_desc(res[i][0], res[i][1])
     return res
 
+# get simplified descriptor
 def simplify_by_descs(mons: list[list]) -> list[dict]:
     pairs = 0
     for i in range(len(mons)):
@@ -296,6 +309,7 @@ def simplify_by_descs(mons: list[list]) -> list[dict]:
             i += 1
     return res
 
+# generate monomial expression by descriptor;
 def node_by_desc(desc: list) -> Node:
     res = None
     for v in desc[0]:
@@ -306,6 +320,7 @@ def node_by_desc(desc: list) -> Node:
             res *= nod
     return Node(val=desc[1]) * res
 
+# generate polynomial expression by descriptor
 def node_by_descs(descs: list) -> Node:
     res = None
     for m in descs:
@@ -315,6 +330,7 @@ def node_by_descs(descs: list) -> Node:
             res += node_by_desc(m)
     return res
 
+# get expression from postfix notation
 def post2node(p: list, funcs: dict, debug=False) -> Node:
     stack = []
     for token in p:
@@ -352,7 +368,8 @@ def post2node(p: list, funcs: dict, debug=False) -> Node:
                     stack.append(Node(name=token, children=operands, params=params))
     return stack[0]
 
-def s2node(inp: str, funcs=dict()) -> Node:
+# convert infix string to expression tree with function detection
+def s2node(inp: str, funcs=dict()) -> tuple[Node, dict]:
     pol, funcs = inf2post(inp, funcs)
     n = post2node(pol, funcs)
     return n, funcs
