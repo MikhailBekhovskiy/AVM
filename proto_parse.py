@@ -1,5 +1,6 @@
 # new version of parsing base on notations and tree
 
+# config; shouldn't be changed 
 binary_ops = {'*', '+', '-', '/', '^'}
 unary_ops = {'u-'}
 delim = {';', ','}
@@ -33,15 +34,20 @@ def get_token(inp:str, i:int) -> tuple[str, int]:
             i += 1
         return t, i
 
-# calculate number of arguments and parametres of function token
+# calculate number of parametres and arguments of function token
 def calc_args(inp: str, i: int) -> tuple[int, int]:
     args = 0
     pars = 0
     arg_switch = False
     while i < len(inp) and inp[i] != ']':
         if inp[i] == '[':
-            while i < len(inp) and inp[i] != ']':
+            op = 1
+            while i < len(inp) and op > 0:
                 i += 1
+                if inp[i] == '[':
+                    op += 1
+                elif inp[i] == ']':
+                    op -= 1
         if i < len(inp) and inp[i] == ';':
             arg_switch = True
         elif i < len(inp) and inp[i] == ',':

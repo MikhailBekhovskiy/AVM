@@ -8,22 +8,23 @@ def str2eq(inp: str, funcs=dict()) -> tuple[str, str, Node, dict]:
     while i < len(inp) and (inp[i] == ' ' or inp[i] == 'd'):
         i += 1
     main_var = ''
-    while i < len(inp) and inp[i] != ' ' and inp[i] != '/':
+    while i < len(inp) and inp[i] != ' ' and inp[i] != '/' and inp[i] != '=':
         main_var += inp[i]
         i += 1
     while i < len(inp) and (inp[i] == ' ' or inp[i] == 'd' or inp[i] == '/'):
         i += 1
     sec_var = ''
-    while i < len(inp) and inp[i] != ' ' and inp[i] != '=':
-        sec_var += inp[i]
-        i += 1
+    if inp[i] != '=':
+        while i < len(inp) and inp[i] != ' ' and inp[i] != '=':
+            sec_var += inp[i]
+            i += 1
     while i < len(inp) and (inp[i] == ' ' or inp[i] == '='):
         i += 1
     rhs = inp[i:]
     rhs = s2node(rhs, funcs)
     return main_var, sec_var, rhs[0], rhs[1]
 
-# generate DE system by text description
+# generate mixed system by text description
 def file_scanner(filename='scrolls/input.txt') -> list:
     with open(filename, 'r') as f:
         res = f.readlines()
@@ -47,77 +48,96 @@ class System():
             mv, sv, rhs, self.funcs = str2eq(eq, self.funcs)
             if mv not in self.eqs:
                 self.eqs[mv] = dict()
-            self.eqs[mv][sv] = rhs
+            if sv != '':
+                self.eqs[mv][sv] = rhs
+                if sv not in self.ind_vars:
+                    self.ind_vars.add(sv)
+            else:
+                self.eqs[mv] = rhs
             if mv not in self.dep_vars:
                 self.dep_vars.add(mv)
-            if sv not in self.ind_vars:
-                self.ind_vars.add(sv)
-        for mv in self.dep_vars:
-            if mv not in self.eqs:
-                self.eqs[mv] = dict()
-            for sv in self.ind_vars:
-                if sv not in self.eqs[mv]:
-                    self.eqs[mv][sv] = Node(val=0.)
 
     def __str__(self):
         res = 'Dependent variables:\n' + str(self.dep_vars) + '\n'
         res += 'Independent variables:\n' + str(self.ind_vars) + '\n'
         res += 'Detected functions:\n' + str(self.funcs) + '\n'
         for mv in self.eqs:
-            for sv in self.eqs[mv]:
-                res += f'd{mv}/d{sv} = ' + str(self.eqs[mv][sv]) + '\n'
+            if type(self.eqs[mv]) is dict:
+                for sv in self.eqs[mv]:
+                    res += f'd{mv}/d{sv} = ' + str(self.eqs[mv][sv]) + '\n'
+            else:
+                res += f'{mv} = ' + str(self.eqs[mv]) + '\n'
         return res[:-1]
 
     # check whether system is polynomial
     def is_poly(self):
-        for mv in self.dep_vars:
+        for mv in self.eqs:
             for sv in self.ind_vars:
-                if mv in self.eqs and sv in self.eqs[mv]:
+                if mv in self.eqs and type(self.eqs[mv]) is dict and sv in self.eqs[mv]:
                     if not self.eqs[mv][sv].is_poly(self.funcs):
                         return False
+                elif type(self.eqs[mv]) is Node and not self.eqs[mv].is_poly(self.funcs):
+                    return False
         return True
 
     # add equation to the system
     def add_eq(self, mv, sv, rhs):
         if mv not in self.dep_vars:
             self.dep_vars.add(mv)
-        if sv not in self.ind_vars:
-            self.ind_vars.add(sv)
-        self.eqs[mv][sv] = rhs
+        if sv != '':
+            if sv not in self.ind_vars:
+                self.ind_vars.add(sv)
+            self.eqs[mv][sv] = rhs
+        else:
+            self.eqs[mv] = rhs
         return self
 
     # systemwide substitution
     def substitute(self, old_exp, new_exp):
-        for mv in self.dep_vars:
-            for sv in self.ind_vars:
-                if mv in self.eqs and sv in self.eqs[mv]:
-                    self.eqs[mv][sv] = self.eqs[mv][sv].substitute(old_exp, new_exp)
+        for mv in self.eqs:
+            if type(self.eqs[mv]) is dict:
+                for sv in self.ind_vars:
+                    if mv in self.eqs and sv in self.eqs[mv]:
+                        self.eqs[mv][sv] = self.eqs[mv][sv].substitute(old_exp, new_exp)
+            elif type(self.eqs[mv]) is Node:
+                self.eqs[mv] = self.eqs[mv].substitute(old_exp, new_exp)
         return self
 
     # get right hand side with functions in it
     def get_non_poly_rhs(self):
-        for mv in self.dep_vars:
-            for sv in self.ind_vars:
-                if mv in self.eqs and sv in self.eqs[mv]:
-                    if not self.eqs[mv][sv].is_poly(self.funcs):
-                        return self.eqs[mv][sv]
+        for mv in self.eqs:
+            if type(self.eqs[mv]) is dict:
+                for sv in self.ind_vars:
+                    if mv in self.eqs and sv in self.eqs[mv]:
+                        if not self.eqs[mv][sv].is_poly(self.funcs):
+                            return self.eqs[mv][sv]
+            elif type(self.eqs[mv]) is Node:
+                if not self.eqs[mv].is_poly(self.funcs):
+                    return self.eqs[mv]
         return None
 
     # system wide variable change
     def change_var_name(self, old_var, new_var):
         self.eqs[new_var] = dict()
-        for mv in self.dep_vars:
-            for sv in self.ind_vars:
+        for mv in self.eqs:
+            if type(self.eqs[mv]) is dict:
+                for sv in self.eqs[mv]:
+                    if mv == old_var:
+                        self.eqs[new_var][sv] = self.eqs[mv][sv].substitute(Node(name=old_var), Node(name=new_var))
+                    else:
+                        self.eqs[mv][sv] = self.eqs[mv][sv].substitute(Node(name=old_var), Node(name=new_var))
+            elif type(self.eqs[mv]) is Node:
                 if mv == old_var:
-                    self.eqs[new_var][sv] = self.eqs[mv][sv].substitute(Node(name=old_var), Node(name=new_var))
+                    self.eqs[new_var] = self.eqs[mv].substitute(Node(name=old_var), Node(name=new_var))
                 else:
-                    self.eqs[mv][sv] = self.eqs[mv][sv].substitute(Node(name=old_var), Node(name=new_var))
+                    self.eqs[mv] = self.eqs[mv].substitute(Node(name=old_var), Node(name=new_var))
         del self.eqs[old_var]
         self.dep_vars.remove(old_var)
         self.dep_vars.add(new_var)
         return self
 
     # introduce and insert additional variables to polynomize systems
+    # parametre insertion not supported yet
     def insert_av(self, loaded_lib):
         S = self
         L = loaded_lib
@@ -183,9 +203,12 @@ if __name__ == "__main__":
     S = System()
     L = expand_sub_lib(S.funcs, lib_na)
     L = L[0], load_lib_systems(L)
+    # print(S)
+    # print(S.is_poly())
     S, L, replaced = S.insert_av(L)
     S = S.av_ders(replaced, L)
     print(S)
+    #print(L)
     print('Additional variables definition:')
     for r in replaced:
         print(r[0], ' = ', r[1])
