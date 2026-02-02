@@ -2,7 +2,7 @@
 
 
 # function to select needed systems from read section;
-def expand_sub_lib(funcs: set, lib: tuple, sub_names=dict(), sub_syst=[]) -> tuple:
+def expand_sub_lib(funcs: dict, lib: tuple, sub_names=dict(), sub_syst=[]) -> tuple:
     names = lib[0]
     systems = lib[1]
     for f in funcs:
@@ -14,7 +14,7 @@ def expand_sub_lib(funcs: set, lib: tuple, sub_names=dict(), sub_syst=[]) -> tup
             for e in ext:
                 sub_names[e] = [new_num, names[e][1], names[e][2], names[e][3]]
             sub_syst.append(systems[num])
-    return sub_names, sub_syst
+    return [sub_names, sub_syst]
 
 
 
@@ -80,7 +80,7 @@ library_RHS_na = [
     ]
 ]
 
-lib_na = (library_names_na, library_RHS_na)
+lib_na = [library_names_na, library_RHS_na]
 # for testing purposes
 if __name__ == "__main__":
     pass

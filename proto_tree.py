@@ -53,18 +53,6 @@ class Node():
                 res += k.__str__() + ', '
             res = res[:len(res)-2]
             return res + ']'
-
-    # check whether expression is polynomial (contains functions; functions are detected during parsing)  
-    def is_poly(self, funcs: dict) -> bool:
-        if self.name in funcs or self.name == '/' or (self.name == '^' and self.kids[1].name != 'num'):
-            return False
-        elif len(self.kids) == 0:
-            return True
-        else:
-            for k in self.kids:
-                if not k.is_poly(funcs):
-                    return False
-            return True
         
     def __eq__(self, b):
         if self.name != b.name or len(self.kids) != len(b.kids):
@@ -148,7 +136,20 @@ class Node():
         else:
             return Node(name='^', children=[self, b])
 
+    # check whether expression is polynomial (contains functions; functions are detected during parsing)  
+    def is_poly(self, funcs: dict) -> bool:
+        if self.name in funcs or self.name == '/' or (self.name == '^' and self.kids[1].name != 'num'):
+            return False
+        elif len(self.kids) == 0:
+            return True
+        else:
+            for k in self.kids:
+                if not k.is_poly(funcs):
+                    return False
+            return True
+
     # get derivative of polynomial expression accounting for polynomial de system
+    # dictionary has depth 2 and Node instances as leaves
     def poly_derivative(self, var, system = dict()):
         if len(self.kids) == 0:
             if self.name == var:
@@ -157,18 +158,23 @@ class Node():
                 return system[self.name][var]
             else:
                 return Node(val=0.)
+        # composite function differentiation
         else:
             k_ders = [None] * len(self.kids)
+            # recursively find derivatives of node children
             for i in range(len(self.kids)):
-                k_ders[i] = self.kids[i].poly_derivative(var)
+                k_ders[i] = self.kids[i].poly_derivative(var, system)
+            # addition rule
             if self.name == '+':
                 return k_ders[0] + k_ders[1]
             elif self.name == '-':
                 return k_ders[0] - k_ders[1]
             elif self.name == 'u-':
                 return -k_ders[0]
+            # multiplication rule
             elif self.name == '*':
                 return k_ders[0] * self.kids[1] + k_ders[1] * self.kids[0]
+            # numeric power rule 
             elif self.name == '^' and self.kids[1].name == 'num':
                 k_der = k_ders[0]
                 return Node(val=self.kids[1].value) * self.kids[0] ** Node(val = self.kids[1].value - 1) * k_der
@@ -193,7 +199,7 @@ class Node():
                 cands = k.find_poly_func(funcs, cands)
             return cands
     
-    # substite expression
+    # substite expression; recursive
     def substitute(self, exp_old, exp_new):
         if self == exp_old:
             return exp_new
@@ -203,12 +209,12 @@ class Node():
         return self
 
     # substitute several expressions (used in additional variables insertion step)
-    def bulk_substitute(self, exp_olds, exp_news):
-        for i in range(len(exp_olds)):
-            self = self.substitute(exp_olds[i], exp_news[i])
+    def bulk_substitute(self, exps: dict):
+        for e in exps:
+            self = self.substitute(Node(name=e), Node(name=exps[e]))
         return self
 
-    # open parenthesis for normalization; 
+    # open parentheses for normalization; 
     def open_parenth(self):
         if len(self.kids) == 0:
             return self
@@ -242,7 +248,7 @@ class Node():
                 self.kids[i] = self.kids[i].open_parenth()
             return self
 
-    # find monomials IN POLYNOMIAL EXPRESSION WITHOUT PARENTHESIS
+    # find monomials IN POLYNOMIAL EXPRESSION WITHOUT PARENTHESES
     def find_monomials(self, res=[]) -> list:
         if self.name == '*' or len(self.kids) == 0:
             res.append(self)
@@ -271,7 +277,7 @@ class Node():
         if len(self.kids) == 0:
             return Node(name=self.name, val=self.value)
         else:
-            return Node(name=self.name, children=[k.copy() for k in self.kids])
+            return Node(name=self.name, val=self.value, params=self.params, children=[k.copy() for k in self.kids])
     
     # expression polynomization; 
     def polynomize(self, funcs):
@@ -376,7 +382,9 @@ def s2node(inp: str, funcs=dict()) -> tuple[Node, dict]:
 
 if __name__ == "__main__":
     expression = 'x3^3*sin[cos[a*ln[x2]^2 + b*x3]] + x3^3*b*ln[x2]^4 + sin[a*ln[x2]^2 + b*x3]^5 + Dv[g^2, 1, -1; x1]'
+    vars = ['x1','x2','x3']
     e, f = s2node(expression)
+    q = e.copy()
     print('Original:\n', e)
     print('Found funcs:\n', f)
     if not e.is_poly(f):
@@ -392,8 +400,19 @@ if __name__ == "__main__":
     print(f'Found {len(m)} monomials!')
     m = get_mon_descs(m)
     m = simplify_by_descs(m)
-    print(f'Simplified to {len(m)} monomials:')
-    print(m)
+    # print(f'Simplified to {len(m)} monomials:')
+    # print(m)
     e = node_by_descs(m)
     print(f'Transformed expression:')
     print(e)
+    # print(f'Copy of the initial state:')
+    # print(q)
+    system = {
+        's0':{
+            'x1': s2node('x1 * 5')[0]
+        }
+    }
+    print(system['s0']['x1'])
+    for s in vars:
+        der = e.poly_derivative(s, system)
+        print('df/d',s, ' = ', der)
