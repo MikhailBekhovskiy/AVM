@@ -136,6 +136,19 @@ class Node():
         else:
             return Node(name='^', children=[self, b])
 
+    def det_nod_print(self):
+        print(f'Node name: {self.name}')
+        if self.value != None:
+            print(f'Node value: {self.value}')
+        if len(self.kids) > 0:
+            print('Node kids:')
+            for k in self.kids:
+                print(k)
+        if len(self.parameters) > 0:
+            print('Node parameters:')
+            for p in self.parameters:
+                print(p)
+
     # check whether expression is polynomial (contains functions; functions are detected during parsing)  
     def is_poly(self, funcs: dict) -> bool:
         if self.name in funcs or self.name == '/' or (self.name == '^' and self.kids[1].name != 'num'):
@@ -183,7 +196,7 @@ class Node():
                 return None
 
     # find functions with polynomial arguments; finds all candidates
-    def find_poly_func(self, funcs: dict, cands=[]):
+    def find_poly_funcs(self, funcs: dict, cands=[]):
         if len(self.kids) == 0:
             return cands
         else:
@@ -196,23 +209,26 @@ class Node():
                 if cand == True:
                     return cands + [self]
             for k in self.kids:
-                cands = k.find_poly_func(funcs, cands)
+                cands = k.find_poly_funcs(funcs, cands)
             return cands
     
-    # substite expression; recursive
+    # substite expression; recursive; returns NEW instance
     def substitute(self, exp_old, exp_new):
-        if self == exp_old:
-            return exp_new
+        neu = self.copy()
+        if neu == exp_old:
+            return exp_new.copy()
         else:
             for i in range(len(self.kids)):
-                self.kids[i] = self.kids[i].substitute(exp_old, exp_new)
-        return self
+                neu.kids[i] = neu.kids[i].substitute(exp_old, exp_new)
+        return neu
 
     # substitute several expressions (used in additional variables insertion step)
+    # return NEW instance
     def bulk_substitute(self, exps: dict):
+        neu = self.copy
         for e in exps:
-            self = self.substitute(Node(name=e), Node(name=exps[e]))
-        return self
+            neu = neu.substitute(Node(name=e), Node(name=exps[e]))
+        return neu
 
     # open parentheses for normalization; 
     def open_parenth(self):
@@ -277,14 +293,26 @@ class Node():
         if len(self.kids) == 0:
             return Node(name=self.name, val=self.value)
         else:
-            return Node(name=self.name, val=self.value, params=self.params, children=[k.copy() for k in self.kids])
+            return Node(name=self.name, val=self.value, params=self.parameters, children=[k.copy() for k in self.kids])
     
+    # detect variables in expression recursively
+    def var_detector(self) -> set:
+        if self.name == 'num':
+            return set()
+        elif len(self.kids) == 0:
+            return {self.name}
+        else:
+            vars = set()
+            for k in self.kids:
+                vars = vars.union(k.var_detector())
+            return vars
+        
     # expression polynomization; 
     def polynomize(self, funcs):
         sub = dict()
         i = 0
         while not self.is_poly(funcs):
-            cands = self.find_poly_func(funcs)
+            cands = self.find_poly_funcs(funcs)
             self = self.substitute(cands[0], Node(name=f's{i}'))
             sub[f's{i}'] = cands[0]
             i += 1
@@ -381,38 +409,8 @@ def s2node(inp: str, funcs=dict()) -> tuple[Node, dict]:
     return n, funcs
 
 if __name__ == "__main__":
-    expression = 'x3^3*sin[cos[a*ln[x2]^2 + b*x3]] + x3^3*b*ln[x2]^4 + sin[a*ln[x2]^2 + b*x3]^5 + Dv[g^2, 1, -1; x1]'
-    vars = ['x1','x2','x3']
+    expression = 'Dv[g^2, 1, -1; x1]'
     e, f = s2node(expression)
-    q = e.copy()
-    print('Original:\n', e)
-    print('Found funcs:\n', f)
-    if not e.is_poly(f):
-        e, hist = e.polynomize(f)
-        print('New expression:\n', e)
-        print('Substitutes:')
-        for s in hist:
-            print(s, ' is ', hist[s])
-    print('Unfactorized expression:')
-    e = e.open_parenth()
-    print(e)
-    m = e.find_monomials()
-    print(f'Found {len(m)} monomials!')
-    m = get_mon_descs(m)
-    m = simplify_by_descs(m)
-    # print(f'Simplified to {len(m)} monomials:')
-    # print(m)
-    e = node_by_descs(m)
-    print(f'Transformed expression:')
-    print(e)
-    # print(f'Copy of the initial state:')
-    # print(q)
-    system = {
-        's0':{
-            'x1': s2node('x1 * 5')[0]
-        }
-    }
-    print(system['s0']['x1'])
-    for s in vars:
-        der = e.poly_derivative(s, system)
-        print('df/d',s, ' = ', der)
+    e.det_nod_print()
+    v = e.var_detector()
+    print(v)
