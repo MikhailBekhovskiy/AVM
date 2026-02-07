@@ -31,7 +31,7 @@ class Node():
             if type(self.kids[0]) is Node and self.kids[0].name in priorities and priorities[self.name] > priorities[self.kids[0].name]:
                 l = '(' + l + ')'
             r = self.kids[1].__str__()
-            if type(self.kids[1])is Node and self.kids[1].name in priorities and (priorities[self.name] > priorities[self.kids[1].name] or (self.name == '-' and priorities[self.name] >= priorities[self.kids[1].name])):
+            if type(self.kids[1]) is Node and self.kids[1].name in priorities and (priorities[self.name] > priorities[self.kids[1].name] or (self.name == '-' and priorities[self.name] >= priorities[self.kids[1].name]) or self.kids[1].name == 'u-'):
                 r = '(' + r + ')'
             return l + ' ' + self.name + ' ' + r
         elif self.name in unary_ops and len(self.kids) == 1:
@@ -224,45 +224,71 @@ class Node():
 
     # substitute several expressions (used in additional variables insertion step)
     # return NEW instance
-    def bulk_substitute(self, exps: dict):
-        neu = self.copy
-        for e in exps:
-            neu = neu.substitute(Node(name=e), Node(name=exps[e]))
+    def bulk_substitute(self, exps_old: list, exps_new: list):
+        neu = self.copy()
+        for i in range(len(exps_old)):
+            neu = neu.substitute(exps_old[i], exps_new[i])
         return neu
 
     # open parentheses for normalization; 
-    def open_parenth(self):
-        if len(self.kids) == 0:
-            return self
-        elif self.name == '*' and self.kids[0].name in {'+', '-'}:
-            l = self.kids[1] * self.kids[0].kids[0]
-            r = self.kids[1] * self.kids[0].kids[1]
-            if self.kids[0].name == '+':
-                self = l + r
-            else:    
-                self = l - r
-            return self.open_parenth()
-        elif self.name == '*' and self.kids[1].name in {'+', '-'}:
-            l = self.kids[0] * self.kids[1].kids[0]
-            r = self.kids[0] * self.kids[1].kids[1]
-            if self.kids[1].name == '+':
-                self = l + r
-            else:
-                self = l - r
-            return self.open_parenth()
-        elif self.name == '^' and self.kids[1].name == 'num':
-            i = self.kids[1].value
-            base = self.kids[0]
-            res = base
-            while i > 1:
-                res = Node(name = '*', children=[res, base])
-                res = res.open_parenth()
-                i -= 1
-            return res.open_parenth()
+    def balance(self):
+        neu = self.copy()
+        if len(neu.kids) == 0:
+            return neu
+        elif neu.name == '*' and neu.kids[1].name in {'+', '-'}:
+            f = neu.kids[0]
+            g = neu.kids[1].kids[0]
+            h = neu.kids[1].kids[1]
+            l = f * g
+            r = f * h
+            return Node(name=neu.kids[1].name, children=[l.balance(), r.balance()])
+        elif neu.name == '*' and neu.kids[0].name in {'+', '-'}:
+            f = neu.kids[1]
+            g = neu.kids[0].kids[0]
+            h = neu.kids[0].kids[1]
+            l = f * g
+            r = f * h
+            return Node(name=neu.kids[0].name, children=[l.balance(), r.balance()])
+        elif neu.name == '-' and neu.kids[1].name in {'+', '-'}:
+            rev = {'+': '-', '-': '+'}
+            f = neu.kids[0]
+            g = neu.kids[1].kids[0]
+            h = neu.kids[1].kids[1]
+            l = f - g
+            r = h
+            return Node(name=rev[neu.kids[1].name], children=[l.balance(), r.balance()])
+        elif neu.name == 'u-' and neu.kids[0].name in {'+', '-'}:
+            rev = {'+': '-', '-': '+'}
+            l = -neu.kids[0].kids[0]
+            r = neu.kids[0].kids[1]
+            return Node(name=rev[neu.kids[0].name], children=[l.balance(), r.balance()])
+        elif neu.name == '*' and neu.kids[0].name == 'u-':
+            f = neu.kids[0].kids[0]
+            g = neu.kids[1]
+            return -Node(name='*', children=[f.balance(), g.balance()])
+        elif neu.name == '*' and neu.kids[1].name == 'u-':
+            f = neu.kids[1].kids[0]
+            g = neu.kids[0]
+            return -Node(name='*', children=[f.balance(), g.balance()])
+        elif neu.name in {'+', '-'} and neu.kids[1].name == 'u-':
+            rev = {'+': '-', '-': '+'}
+            f = neu.kids[0]
+            g = neu.kids[1].kids[0]
+            return Node(name=rev[neu.name], children=[f.balance(), g.balance()])
+        elif neu.name == '+' and neu.kids[0].name == 'u-':
+            f = neu.kids[0].kids[0]
+            g = neu.kids[1]
+            return g.balance() - f.balance()
         else:
-            for i in range(len(self.kids)):
-                self.kids[i] = self.kids[i].open_parenth()
-            return self
+            return Node(name=neu.name, children=[k.balance() for k in neu.kids])
+
+    def open_parenth(self):
+        neu = self.copy()
+        r = neu.balance()
+        while r != neu:
+            neu = r.copy()
+            r = neu.balance()
+        return r        
 
     # find monomials IN POLYNOMIAL EXPRESSION WITHOUT PARENTHESES
     def find_monomials(self, res=[]) -> list:
@@ -409,8 +435,8 @@ def s2node(inp: str, funcs=dict()) -> tuple[Node, dict]:
     return n, funcs
 
 if __name__ == "__main__":
-    expression = 'Dv[g^2, 1, -1; x1]'
+    expression  = 'f1 -(-f2)'
     e, f = s2node(expression)
-    e.det_nod_print()
-    v = e.var_detector()
-    print(v)
+    print(e)
+    e = e.open_parenth()
+    print(e)

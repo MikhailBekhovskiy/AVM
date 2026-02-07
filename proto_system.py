@@ -76,9 +76,10 @@ def file_scanner(filename='scrolls/input.txt') -> list:
 
 class System():
     # constructor optionally takes filename
-    # lhs varnames from parser methods are added if they werent accounted for in variable rows
+    # lhs varnames from parser methods are added
     # d{depvar}/d{indvar} = eqrhs
     # {depvar} = frhs
+    # add vars stores definitions of additional variables
     def __init__(self, desc=[], filename='scrolls/input.txt'):
         if desc == []:
             desc = file_scanner(filename)
@@ -115,7 +116,8 @@ class System():
             res += 'Additional variables:\n'
             for av in self.add_vars:
                 res += f'{av}: {str(self.add_vars[av])}\n'
-        res += 'Detected functions:\n' + str(self.funcs) + '\n'
+        if len(self.funcs) > 0:
+            res += 'Detected functions:\n' + str(self.funcs) + '\n'
         for mv in self.fs:
             res += f'{mv} = ' + str(self.fs[mv]) + '\n'
         for mv in self.eqs:
@@ -257,7 +259,7 @@ class System():
             for i in range(len(ext)):
                 cand[i+1] = cand[0].copy()
                 cand[i+1].name = ext[i]
-            replaced.append((dict(), syst))
+            replaced.append((dict(), cand[0].kids, syst))
             for c in cand:
                 vname = f's{len(S.add_vars) + 1}'
                 replaced[len(replaced)-1][0][vname] = c
@@ -266,12 +268,51 @@ class System():
         return S, replaced
 
     # calculate single additional variable extension derivatives
-    def av_ders(self, ext: list, loaded_lib):
-        pass
+    def ext_ders(self, ext: tuple, loaded_lib):
+        LS = System(desc = loaded_lib[1][ext[2]])
+        E = ext[0]
+        A = ext[1]
+        arg_ders = [None] * len(A)
+        i = 0
+        for a in A:
+            arg_ders[i] = dict()
+            for t in S.ind_vars:
+                arg_ders[i][t] = a.poly_derivative(t, self.eqs)
+            i += 1
+        exps_old = [None] * (len(E) + len(LS.ind_vars))
+        exps_new = [None] * (len(E) + len(LS.ind_vars))
+        i = 0
+        for av in E:
+            exps_new[i] = Node(name=av)
+            exps_old[i] = Node(name=loaded_lib[0][E[av].name][1])
+            i += 1
+        for t in LS.ind_vars:
+            exps_old[i] = Node(name=t)
+            if t == 't':
+                exps_new[i] = A[0]
+            else:
+                exps_new[i] = A[int(t[1:])-1]
+            i += 1
+        for i in range(len(E)):
+            avname = exps_new[i].name
+            self.eqs[avname] = dict()
+            for t in self.ind_vars:
+                self.eqs[avname][t] = Node(val=0)
+                for j in range(len(E), len(exps_old)):
+                    self.eqs[avname][t] += LS.eqs[exps_old[i].name][exps_old[j].name].bulk_substitute(exps_old, exps_new) * arg_ders[j - len(E)][t]    
 
     # calculate all additional variable derivatives
     def av_ders(self, avs: list, loaded_lib):
-        pass
+        for ext in avs:
+            S.ext_ders(ext, loaded_lib)
+
+    # system-wide parentheses opener
+    def open_parenth(self):
+        for x in self.eqs:
+            for t in self.eqs[x]:
+                self.eqs[x][t] = self.eqs[x][t].open_parenth()
+        for f in self.fs:
+            self.fs[f] = self.fs[f].open_parenth()
 
 # generate system from library descriptor
 def load_lib_systems(lib):
@@ -293,10 +334,7 @@ def print_avs(replaced: list):
 if __name__ == "__main__":
     S = System()
     S, R = S.insert_av(lib_na)
+    S.av_ders(R, lib_na)
+    S.open_parenth()
     print(S)
-    i = 1
-    for e in R:
-        print(f'Extension #{i}:')
-        i += 1
-        for av in e[0]:
-            print(f'{av} = {str(e[0][av])}')
+
