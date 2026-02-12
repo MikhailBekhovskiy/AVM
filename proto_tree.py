@@ -85,8 +85,10 @@ class Node():
     def __neg__(self):
         if self.name == 'num':
             return Node(val = -self.value)
+        elif self.name == 'u-':
+            return self.kids[0].copy()
         else:
-            return Node(name='u-', children = [self])   
+            return Node(name='u-', children = [self.copy()])   
 
     def __add__(self, b):
         if self.name == 'num' and b.name == 'num':
@@ -172,6 +174,16 @@ class Node():
                     return False
             return True
 
+    def is_mono(self):
+        if len(self.kids) == 0:
+            return True
+        elif self.name not in {'*', '^'}:
+            return False
+        else:
+            for k in self.kids:
+                if not k.is_mono():
+                    return False
+            return True
     # get derivative of polynomial expression accounting for polynomial de system
     # dictionary has depth 2 and Node instances as leaves
     def poly_derivative(self, var, system = dict()):
@@ -241,6 +253,35 @@ class Node():
             neu = neu.substitute(exps_old[i], exps_new[i])
         return neu
 
+    def mon_dec(self):
+        if self.is_mono():
+            if len(self.kids) == 0 or self.name == '^':
+                return [self]
+            else:
+                return self.kids[0].mon_dec() + self.kids[1].mon_dec()
+
+    def get_mon_decs(self):
+        if self.is_mono():
+            return [self.mon_dec()]
+        else:
+            return self.kids[0].get_mon_decs() + self.kids[1].get_mon_decs()
+
+    def is_balanceable(self, debug=False):
+        if (self.name == '^' and self.kids[0].name in {'^', '*', '+', '-', 'u-'}):
+            if debug:
+                print(f'Unbalance at:')
+                self.det_nod_print()
+            return True
+        if self.name == '*' and (self.kids[0].name in {'+', '-', 'u-'} or self.kids[1].name in {'+', '-', 'u-'}):
+            if debug:
+                print(f'Unbalance at:')
+                self.det_nod_print()
+            return True
+        for k in self.kids:
+            if k.is_balanceable(debug=debug):
+                return True
+        return False
+
     def balance_power(self):
         if len(self.kids) == 0 or len(self.kids[0].kids) == 0:
             return self.copy()
@@ -268,43 +309,90 @@ class Node():
                     res = a ** n
                 else:
                     res = -a ** n
+            elif self.kids[0].name == '^':
+                m = int(self.kids[0].kids[1].value)
+                a = self.kids[0].kids[0].copy()
+                res = a ** (m*n)
+                res = res.balance_power()
+            else:
+                res = self.copy()
         else:
             res = self.copy()
         for i in range(len(res.kids)):
             res.kids[i] = res.kids[i].balance_power()
         return res
 
-    # open parentheses for normalization; 
-    def balance(self):
-        pass
-
-
-    def open_parenth(self):
-        pass      
-
-    # find monomials IN POLYNOMIAL EXPRESSION WITHOUT PARENTHESES
-    def find_monomials(self, res=[]) -> list:
-        if self.name == '*' or len(self.kids) == 0:
-            res.append(self)
+    def balance_mult(self):
+        if len(self.kids) == 0:
+            return self.copy()
+        elif self.name == '*':
+            if self.kids[0].name == 'u-':
+                a = self.kids[0].kids[0].copy()
+                b = self.kids[1].copy()
+                res = -(a * b)
+            elif self.kids[1].name == 'u-':
+                a = self.kids[0].copy()
+                b = self.kids[1].kids[0].copy()
+                res = -(a * b)
+            elif self.kids[0].name == '+':
+                a = self.kids[0].kids[0].copy()
+                b = self.kids[0].kids[1].copy()
+                c = self.kids[1].copy()
+                res = a * c + b * c
+            elif self.kids[1].name == '+':
+                a = self.kids[1].kids[0].copy()
+                b = self.kids[1].kids[1].copy()
+                c = self.kids[0].copy()
+                res = a * c + b * c
+            elif self.kids[0].name == '-':
+                a = self.kids[0].kids[0].copy()
+                b = self.kids[0].kids[1].copy()
+                c = self.kids[1].copy()
+                res = a * c - b * c
+            elif self.kids[1].name == '-':
+                a = self.kids[1].kids[0].copy()
+                b = self.kids[1].kids[1].copy()
+                c = self.kids[0].copy()
+                res = a * c - b * c
+            else:
+                res = self.copy()
         else:
-            for k in self.kids:
-                k.find_monomials(res)
+            res = self.copy()
+        for i in range(len(res.kids)):
+            res.kids[i] = res.kids[i].balance_mult()
         return res
 
-    # generate monomial descriptor for normalization
-    def get_mon_desc(self, desc=dict(), coef=1.) -> tuple[dict, float]:
+    def balance_min(self):
         if len(self.kids) == 0:
-            if self.name == 'num':
-                coef *= self.value
+            return self.copy()
+        elif self.name == '-':
+            a = self.kids[0].copy()
+            b = -self.kids[1].copy()
+            res = a + b
+        elif self.name == 'u-':
+            if self.kids[0].is_mono():
+                return Node(val=-1) * self.kids[0].copy()
+            elif self.kids[0].name == 'u-':
+                res = self.kids[0].kids[0].copy()
             else:
-                if self.name in desc:
-                    desc[self.name] += 1
-                else:
-                    desc[self.name] = 1
+                a = -self.kids[0].kids[0].copy()
+                b = -self.kids[0].kids[1].copy()
+                res = Node(name=self.kids[0].name, children = [a, b])
         else:
-            for k in self.kids:
-                desc, coef = k.get_mon_desc(desc, coef)
-        return desc, coef
+            res = self.copy()
+        for i in range(len(res.kids)):
+            res.kids[i] = res.kids[i].balance_min()
+        return res
+    
+    # normalize expression 
+    def balance(self):
+        r = self.copy()
+        r = r.balance_power()
+        while r.is_balanceable():
+            r = r.balance_mult()
+        r = r.balance_min()
+        return r
+            
 
     # deep recursive copy
     def copy(self):
@@ -336,51 +424,70 @@ class Node():
             i += 1
         return self, sub
 
-# get descriptors from UNFACTORIZED POLYNOMIAL
-def get_mon_descs(mons: list[Node]) -> list[list]:
-    res = [None] * len(mons)
-    for i in range(len(mons)):
-        res[i] = [dict(), 1.]
-        res[i][0], res[i][1] = mons[i].get_mon_desc(res[i][0], res[i][1])
-    return res
+def mon_dec_norm(monoms):
+    for i in range(len(monoms)):
+        m = monoms[i]
+        d = {'coef': 1}
+        for v in m:
+            if v.name == 'num':
+                d['coef'] *= v.value
+            elif v.name == '^':
+                if v.kids[0].name not in d:
+                    d[v.kids[0].name] = v.kids[1].value
+                else:
+                    d[v.kids[0].name] += v.kids[1].value
+            else:
+                if v.name not in d:
+                    d[v.name] = 1
+                else:
+                    d[v.name] += 1
+        monoms[i] = d
+    return monoms
 
-# get simplified descriptor
-def simplify_by_descs(mons: list[list]) -> list[dict]:
-    pairs = 0
+def mon_eq(m1, m2):
+    if len(m1) != len(m2):
+        return False
+    for v in m1:
+        if v != 'coef':
+            if v not in m2 or m1[v] != m2[v]:
+                return False
+    return True
+
+def simplify(mons):
     for i in range(len(mons)):
-        for j in range(i+1, len(mons)):
-            if mons[i] != None and mons[j] != None and mons[i][0] == mons[j][0]:
-                mons[i][1] += mons[j][1]
-                mons[j] = None
-                pairs += 1
-    res = [None] * (len(mons) - pairs)
-    i = 0
+        if mons[i]['coef'] != 0:
+            for j in range(i + 1, len(mons)):
+                if mons[j]['coef'] != 0 and mon_eq(mons[i], mons[j]):
+                    mons[i]['coef'] += mons[j]['coef']
+                    mons[j]['coef'] = 0
+    res = []
     for m in mons:
-        if m != None:
-            res[i] = m
-            i += 1
+        if m['coef'] != 0:
+            res.append(m)
     return res
 
-# generate monomial expression by descriptor;
-def node_by_desc(desc: list) -> Node:
-    res = None
-    for v in desc[0]:
-        nod = Node(name=v) ** Node(val=desc[0][v])
-        if not type(res) is Node:
-            res = nod
-        else:
-            res *= nod
-    return Node(val=desc[1]) * res
-
-# generate polynomial expression by descriptor
-def node_by_descs(descs: list) -> Node:
-    res = None
-    for m in descs:
-        if not type(res) is Node:
-            res = node_by_desc(m)
-        else:
-            res += node_by_desc(m)
+def gen_mon(mon):
+    res = Node(val=mon['coef'])
+    for v in mon:
+        if v != 'coef':
+            res *= Node(name=v) ** mon[v]
     return res
+
+def gen_poly(mons):
+    if len(mons) == 0:
+        return Node(val=0)
+    else:
+        res = gen_mon(mons[0])
+        for i in range(1, len(mons)):
+            res += gen_mon(mons[i])
+        return res
+
+def normalize_poly(P):
+    P = P.balance()
+    P = P.get_mon_decs()
+    P = mon_dec_norm(P)
+    P = simplify(P)
+    return gen_poly(P)
 
 # get expression from postfix notation
 def post2node(p: list, funcs: dict, debug=False) -> Node:
@@ -427,6 +534,7 @@ def s2node(inp: str, funcs=dict()) -> tuple[Node, dict]:
     return n, funcs
 
 if __name__ == "__main__":
-    e, f = s2node(inp='((x-y) * z) ^ 9')
-    e = e.balance_power()
+    e, f = s2node(inp='(-s5) * (-s4) * 2.0 * s1 * s2 * a')
+    e = normalize_poly(e)
     print(e)
+    

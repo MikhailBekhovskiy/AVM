@@ -317,10 +317,10 @@ class System():
     # system-wide parentheses opener
     def open_parenth(self):
         for x in self.eqs:
-            for t in self.eqs[x]:
-                self.eqs[x][t] = self.eqs[x][t].open_parenth()
+           for t in self.eqs[x]:
+              self.eqs[x][t] = normalize_poly(self.eqs[x][t])
         for f in self.fs:
-            self.fs[f] = self.fs[f].open_parenth()
+           self.fs[f] = normalize_poly(self.fs[f])
 
 # generate system from library descriptor
 def load_lib_systems(lib):
@@ -342,9 +342,8 @@ def print_avs(replaced: list):
 if __name__ == "__main__":
     S = System(filename='scrolls/input_big.txt')
     S, R = S.insert_av(lib_na)
-    print(R)
     # print(R)
     S.av_ders(R, lib_na)
-    # S.open_parenth()
+    S.open_parenth()
     print(S)
 
