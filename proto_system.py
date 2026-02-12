@@ -2,7 +2,7 @@
 from proto_tree import *
 from library import *
 
-# Independent variables: comma separated values
+# Independent variables: comma separated values; obsolete
 def str2vars(inp: str, ind: bool) -> set:
     if ind:
         # set pointer after 'independent variables:'
@@ -108,6 +108,11 @@ class System():
                 if mv not in self.dep_vars:
                     self.dep_vars.add(mv)
                 self.fs[mv] = rhs
+        for f in self.fs:
+            vars = self.fs[f].var_detector()
+            for v in vars:
+                if v not in self.dep_vars and v not in self.ind_vars:
+                    self.ind_vars.add(v)
 
     def __str__(self):
         res = 'Dependent variables:\n' + str(self.dep_vars) + '\n'
@@ -259,7 +264,7 @@ class System():
             for i in range(len(ext)):
                 cand[i+1] = cand[0].copy()
                 cand[i+1].name = ext[i]
-            replaced.append((dict(), cand[0].kids, syst))
+            replaced.append((dict(), cand[0].kids, syst, cand[0].parameters))
             for c in cand:
                 vname = f's{len(S.add_vars) + 1}'
                 replaced[len(replaced)-1][0][vname] = c
@@ -279,8 +284,8 @@ class System():
             for t in S.ind_vars:
                 arg_ders[i][t] = a.poly_derivative(t, self.eqs)
             i += 1
-        exps_old = [None] * (len(E) + len(LS.ind_vars))
-        exps_new = [None] * (len(E) + len(LS.ind_vars))
+        exps_old = [None] * (len(E) + len(LS.ind_vars) + len(ext[3]))
+        exps_new = [None] * (len(E) + len(LS.ind_vars) + len(ext[3]))
         i = 0
         for av in E:
             exps_new[i] = Node(name=av)
@@ -293,12 +298,15 @@ class System():
             else:
                 exps_new[i] = A[int(t[1:])-1]
             i += 1
+        for j in range(i, len(exps_old)):
+            exps_old[j] = Node(name=f'p{j-i+1}')
+            exps_new[j] = ext[3][j-i]
         for i in range(len(E)):
             avname = exps_new[i].name
             self.eqs[avname] = dict()
             for t in self.ind_vars:
                 self.eqs[avname][t] = Node(val=0)
-                for j in range(len(E), len(exps_old)):
+                for j in range(len(E), len(E) + len(LS.ind_vars)):
                     self.eqs[avname][t] += LS.eqs[exps_old[i].name][exps_old[j].name].bulk_substitute(exps_old, exps_new) * arg_ders[j - len(E)][t]    
 
     # calculate all additional variable derivatives
@@ -334,7 +342,9 @@ def print_avs(replaced: list):
 if __name__ == "__main__":
     S = System()
     S, R = S.insert_av(lib_na)
+    print(R)
+    # print(R)
     S.av_ders(R, lib_na)
-    S.open_parenth()
+    # S.open_parenth()
     print(S)
 

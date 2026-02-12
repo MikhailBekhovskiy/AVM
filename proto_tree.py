@@ -80,19 +80,19 @@ class Node():
         elif self.name == 'num' and self.value == 0.:
             return b
         elif b.name == 'num' and b.value == 0.:
-            return self
+            return self.copy()
         elif self == b:
-            return Node(name='*', children=[Node(val=2.), self])
+            return Node(name='*', children=[Node(val=2.), self.copy()])
         else:
-            return Node(name='+', children=[self, b])
+            return Node(name='+', children=[self.copy(), b])
 
     def __sub__(self, b):
         if self.name == 'num' and b.name == 'num':
             return Node(val=self.value - b.value)
         elif self.name == 'num' and self.value == 0.:
-            return Node(name='u-', children=[b])
+            return -b
         elif b.name == 'num' and b.value == 0.:
-            return self
+            return self.copy()
         elif self == b:
             return Node(val = 0.)
         else:
@@ -230,6 +230,17 @@ class Node():
             neu = neu.substitute(exps_old[i], exps_new[i])
         return neu
 
+    def disempower(self):
+        if len(self.kids) == 0:
+            return self.copy()
+        elif self.name == '^':
+            p = int(self.kids[1].value)
+            base = self.kids[0].copy()
+            res = self.kids[0].copy()
+            for _ in range(p):
+                res = Node(name='*', children = [res, base])
+            return res
+
     # open parentheses for normalization; 
     def balance(self):
         neu = self.copy()
@@ -241,14 +252,14 @@ class Node():
             h = neu.kids[1].kids[1]
             l = f * g
             r = f * h
-            return Node(name=neu.kids[1].name, children=[l.balance(), r.balance()])
+            return Node(name=neu.kids[1].name, children=[l, r])
         elif neu.name == '*' and neu.kids[0].name in {'+', '-'}:
             f = neu.kids[1]
             g = neu.kids[0].kids[0]
             h = neu.kids[0].kids[1]
             l = f * g
             r = f * h
-            return Node(name=neu.kids[0].name, children=[l.balance(), r.balance()])
+            return Node(name=neu.kids[0].name, children=[l, r])
         elif neu.name == '-' and neu.kids[1].name in {'+', '-'}:
             rev = {'+': '-', '-': '+'}
             f = neu.kids[0]
@@ -256,31 +267,37 @@ class Node():
             h = neu.kids[1].kids[1]
             l = f - g
             r = h
-            return Node(name=rev[neu.kids[1].name], children=[l.balance(), r.balance()])
+            return Node(name=rev[neu.kids[1].name], children=[l, r])
         elif neu.name == 'u-' and neu.kids[0].name in {'+', '-'}:
             rev = {'+': '-', '-': '+'}
             l = -neu.kids[0].kids[0]
             r = neu.kids[0].kids[1]
-            return Node(name=rev[neu.kids[0].name], children=[l.balance(), r.balance()])
+            return Node(name=rev[neu.kids[0].name], children=[l, r])
         elif neu.name == '*' and neu.kids[0].name == 'u-':
             f = neu.kids[0].kids[0]
             g = neu.kids[1]
-            return -Node(name='*', children=[f.balance(), g.balance()])
+            return -Node(name='*', children=[f, g])
         elif neu.name == '*' and neu.kids[1].name == 'u-':
             f = neu.kids[1].kids[0]
             g = neu.kids[0]
-            return -Node(name='*', children=[f.balance(), g.balance()])
+            return -Node(name='*', children=[f, g])
         elif neu.name in {'+', '-'} and neu.kids[1].name == 'u-':
             rev = {'+': '-', '-': '+'}
             f = neu.kids[0]
             g = neu.kids[1].kids[0]
-            return Node(name=rev[neu.name], children=[f.balance(), g.balance()])
+            return Node(name=rev[neu.name], children=[f, g])
         elif neu.name == '+' and neu.kids[0].name == 'u-':
             f = neu.kids[0].kids[0]
             g = neu.kids[1]
-            return g.balance() - f.balance()
+            return g - f
+        elif neu.name == '^' and len(neu.kids[0].kids) > 0:
+            res = neu.copy()
+            for _ in range(int(neu.kids[1].value)):
+                res = Node(name='*', children=[neu, res])
+            return res
         else:
             return Node(name=neu.name, children=[k.balance() for k in neu.kids])
+
 
     def open_parenth(self):
         neu = self.copy()
@@ -435,8 +452,8 @@ def s2node(inp: str, funcs=dict()) -> tuple[Node, dict]:
     return n, funcs
 
 if __name__ == "__main__":
-    expression  = 'f1 -(-f2)'
+    expression  = '(f1 + f2) ^ 10'
     e, f = s2node(expression)
     print(e)
-    e = e.open_parenth()
+    e = e.disempower()
     print(e)
