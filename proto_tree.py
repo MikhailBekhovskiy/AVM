@@ -453,6 +453,13 @@ def mon_eq(m1, m2):
                 return False
     return True
 
+def mon_power(m):
+    p = 0
+    for v in m:
+        if v != 'coef':
+            p += m[v]
+    return p
+
 def simplify(mons):
     for i in range(len(mons)):
         if mons[i]['coef'] != 0:
@@ -466,17 +473,46 @@ def simplify(mons):
             res.append(m)
     return res
 
+def vlv(v1, v2):
+    if v1[0] < v2[0]:
+        return True
+    if v1[0] == v2[0]:
+        if len(v2) == 1:
+            return False
+        if len(v1) == 1:
+            return True
+        if int(v1[1:]) < int(v2[1:]):
+            return True
+    return False 
+
+def vsort(vs):
+    for j in range(len(vs)):
+        for i in range(len(vs)-j-1):
+            if vlv(vs[i+1], vs[i]):
+                vs[i+1], vs[i] = vs[i], vs[i+1]
+    return vs
+
 def gen_mon(mon):
     res = Node(val=mon['coef'])
-    for v in mon:
+    vs = list(mon.keys())
+    vs = vsort(vs)
+    for v in vs:
         if v != 'coef':
             res *= Node(name=v) ** mon[v]
     return res
+
+def mon_sort(mons):
+    for j in range(len(mons)):
+        for i in range(len(mons)-j-1):
+            if mon_power(mons[i]) > mon_power(mons[i+1]):
+                mons[i], mons[i+1] = mons[i+1], mons[i]
+    return mons
 
 def gen_poly(mons):
     if len(mons) == 0:
         return Node(val=0)
     else:
+        mons = mon_sort(mons)
         res = gen_mon(mons[0])
         for i in range(1, len(mons)):
             res += gen_mon(mons[i])
@@ -534,7 +570,7 @@ def s2node(inp: str, funcs=dict()) -> tuple[Node, dict]:
     return n, funcs
 
 if __name__ == "__main__":
-    e, f = s2node(inp='(-s5) * (-s4) * 2.0 * s1 * s2 * a')
+    e, f = s2node(inp='2.0 * a * s1 * s13 * s14 * s2 * s3 * s9')
     e = normalize_poly(e)
     print(e)
     
