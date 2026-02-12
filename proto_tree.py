@@ -6,6 +6,20 @@
 # n-nary operation (functions to be replaced by additional variables, +, *, - to stay)
 from proto_parse import *
 
+def factorial(n):
+    if n >= 0:
+        if n == 0 or n == 1:
+            return 1
+        else:
+            res = 2
+            for i in range(3, n + 1):
+                res *= i
+            return res
+
+def Cnk(n, k):
+    if k >= 0 and n >= k:
+        return factorial(n) / factorial(k) / factorial(n-k)
+
 class Node():
     # initialize by name or numeric value; parametres are stored for function nodes
     def __init__(self, name=None, val=None, children=[], params=[]):
@@ -81,8 +95,6 @@ class Node():
             return b
         elif b.name == 'num' and b.value == 0.:
             return self.copy()
-        elif self == b:
-            return Node(name='*', children=[Node(val=2.), self.copy()])
         else:
             return Node(name='+', children=[self.copy(), b])
 
@@ -107,8 +119,6 @@ class Node():
             return b
         elif b.name == 'num' and b.value == 1.:
             return self
-        elif self == b:
-            return Node(name='^', children=[self, Node(val=2.)])
         else:
             return Node(name='*', children=[self, b])    
     
@@ -123,7 +133,9 @@ class Node():
             return Node(name='/', children=[self, b])
 
     def __pow__(self, b):
-        if self.name == 'num' and b.name == 'num':
+        if type(b) is float or type(b) is int:
+            return self ** Node(val=b)
+        elif self.name == 'num' and b.name == 'num':
             return Node(val=self.value ** b.value)
         elif self.name == 'num' and self.value == 0.:
             return Node(val=0.)
@@ -141,9 +153,8 @@ class Node():
         if self.value != None:
             print(f'Node value: {self.value}')
         if len(self.kids) > 0:
-            print('Node kids:')
-            for k in self.kids:
-                print(k)
+            for i in range(len(self.kids)):
+                print(f'Kid #{i}: {self.kids[i]}')
         if len(self.parameters) > 0:
             print('Node parameters:')
             for p in self.parameters:
@@ -230,82 +241,46 @@ class Node():
             neu = neu.substitute(exps_old[i], exps_new[i])
         return neu
 
-    def disempower(self):
-        if len(self.kids) == 0:
+    def balance_power(self):
+        if len(self.kids) == 0 or len(self.kids[0].kids) == 0:
             return self.copy()
         elif self.name == '^':
-            p = int(self.kids[1].value)
-            base = self.kids[0].copy()
-            res = self.kids[0].copy()
-            for _ in range(p):
-                res = Node(name='*', children = [res, base])
-            return res
+            n = int(self.kids[1].value)
+            if self.kids[0].name == '*':
+                a = self.kids[0].kids[0].copy()
+                b = self.kids[0].kids[1].copy()
+                res = a ** n * b ** n
+            elif self.kids[0].name == '+':
+                res = Node(val=0)
+                a = self.kids[0].kids[0].copy()
+                b = self.kids[0].kids[1].copy()
+                for k in range(n + 1):
+                    res += Node(val=Cnk(n, k)) * a ** (n-k) * b ** k
+            elif self.kids[0].name == '-':
+                res = Node(val=0)
+                a = self.kids[0].kids[0].copy()
+                b = -self.kids[0].kids[1].copy()
+                for k in range(n + 1):
+                    res += Node(val=Cnk(n, k)) * a ** (n-k) * b ** k
+            elif self.kids[0].name == 'u-':
+                a = self.kids[0].kids[0].copy()
+                if int(self.kids[1].value) % 2 == 0:
+                    res = a ** n
+                else:
+                    res = -a ** n
+        else:
+            res = self.copy()
+        for i in range(len(res.kids)):
+            res.kids[i] = res.kids[i].balance_power()
+        return res
 
     # open parentheses for normalization; 
     def balance(self):
-        neu = self.copy()
-        if len(neu.kids) == 0:
-            return neu
-        elif neu.name == '*' and neu.kids[1].name in {'+', '-'}:
-            f = neu.kids[0]
-            g = neu.kids[1].kids[0]
-            h = neu.kids[1].kids[1]
-            l = f * g
-            r = f * h
-            return Node(name=neu.kids[1].name, children=[l, r])
-        elif neu.name == '*' and neu.kids[0].name in {'+', '-'}:
-            f = neu.kids[1]
-            g = neu.kids[0].kids[0]
-            h = neu.kids[0].kids[1]
-            l = f * g
-            r = f * h
-            return Node(name=neu.kids[0].name, children=[l, r])
-        elif neu.name == '-' and neu.kids[1].name in {'+', '-'}:
-            rev = {'+': '-', '-': '+'}
-            f = neu.kids[0]
-            g = neu.kids[1].kids[0]
-            h = neu.kids[1].kids[1]
-            l = f - g
-            r = h
-            return Node(name=rev[neu.kids[1].name], children=[l, r])
-        elif neu.name == 'u-' and neu.kids[0].name in {'+', '-'}:
-            rev = {'+': '-', '-': '+'}
-            l = -neu.kids[0].kids[0]
-            r = neu.kids[0].kids[1]
-            return Node(name=rev[neu.kids[0].name], children=[l, r])
-        elif neu.name == '*' and neu.kids[0].name == 'u-':
-            f = neu.kids[0].kids[0]
-            g = neu.kids[1]
-            return -Node(name='*', children=[f, g])
-        elif neu.name == '*' and neu.kids[1].name == 'u-':
-            f = neu.kids[1].kids[0]
-            g = neu.kids[0]
-            return -Node(name='*', children=[f, g])
-        elif neu.name in {'+', '-'} and neu.kids[1].name == 'u-':
-            rev = {'+': '-', '-': '+'}
-            f = neu.kids[0]
-            g = neu.kids[1].kids[0]
-            return Node(name=rev[neu.name], children=[f, g])
-        elif neu.name == '+' and neu.kids[0].name == 'u-':
-            f = neu.kids[0].kids[0]
-            g = neu.kids[1]
-            return g - f
-        elif neu.name == '^' and len(neu.kids[0].kids) > 0:
-            res = neu.copy()
-            for _ in range(int(neu.kids[1].value)):
-                res = Node(name='*', children=[neu, res])
-            return res
-        else:
-            return Node(name=neu.name, children=[k.balance() for k in neu.kids])
+        pass
 
 
     def open_parenth(self):
-        neu = self.copy()
-        r = neu.balance()
-        while r != neu:
-            neu = r.copy()
-            r = neu.balance()
-        return r        
+        pass      
 
     # find monomials IN POLYNOMIAL EXPRESSION WITHOUT PARENTHESES
     def find_monomials(self, res=[]) -> list:
@@ -452,8 +427,6 @@ def s2node(inp: str, funcs=dict()) -> tuple[Node, dict]:
     return n, funcs
 
 if __name__ == "__main__":
-    expression  = '(f1 + f2) ^ 10'
-    e, f = s2node(expression)
-    print(e)
-    e = e.disempower()
+    e, f = s2node(inp='((x-y) * z) ^ 9')
+    e = e.balance_power()
     print(e)

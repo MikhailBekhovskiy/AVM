@@ -340,7 +340,7 @@ def print_avs(replaced: list):
         print_av(replaced[i])
 
 if __name__ == "__main__":
-    S = System()
+    S = System(filename='scrolls/input_big.txt')
     S, R = S.insert_av(lib_na)
     print(R)
     # print(R)
