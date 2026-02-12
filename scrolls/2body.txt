@@ -1,6 +1,3 @@
-Mode: DE
-Independent variables: t
-Initial values: t=0
 dg1/dt = p1
 dg2/dt = p2
 dg3/dt = p3

@@ -1,5 +1,2 @@
-Mode: DE
-Independent variables: t
-Initial values: t=0; x1=x0; x2=y0
 dx1/dt = a*x1^2*inv[N + x1] - b*x1*x2
 dx2/dt = -c*x2 + d*x1*x2

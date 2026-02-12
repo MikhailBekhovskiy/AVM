@@ -1,2 +1,0 @@
-Original polynomial: x1^3
-Substitute polynomial: x1 = a + b
