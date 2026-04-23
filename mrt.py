@@ -64,6 +64,13 @@ def taylor_printout(coefs: list):
         res += f' + {coefs[i]} * (t-t0)^{i}'
     return res
 
+def taylor_eval(coefs, t, t0):
+    res = coefs[0]
+    pow = t - t0
+    for i in range(1, len(coefs)):
+        res += pow * coefs[i]
+        pow *= t - t0
+    return res
 
 if __name__=="__main__":
     for p in range(11):
