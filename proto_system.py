@@ -177,7 +177,7 @@ class System():
     def add_eq(self, mv, sv, rhs):
         if mv not in self.dep_vars:
             self.dep_vars.add(mv)
-            self.add_vars.add(mv)
+            self.add_vars[mv] = None
         if sv not in self.ind_vars:
             self.ind_vars.add(sv)
         self.eqs[mv][sv] = rhs
@@ -187,7 +187,7 @@ class System():
     def add_f(self, mv, rhs):
         if mv not in self.dep_vars:
             self.dep_vars.add(mv)
-            self.add_vars.add(mv)
+            self.add_vars[mv]=None
         self.fs[mv] = rhs
         return self
     
@@ -213,8 +213,8 @@ class System():
         neu.dep_vars.remove(old_var)
         neu.dep_vars.add(new_var)
         if old_var in self.add_vars:
-            neu.add_vars.remove(old_var)
-            neu.add_vars.add(new_var)
+            del neu.add_vars[old_var]
+            neu.add_vars[new_var]=None
         return neu
 
     # change set is a DICTIONARY
@@ -277,30 +277,30 @@ class System():
         LS = System(desc = loaded_lib[1][ext[2]])
         E = ext[0]
         A = ext[1]
-        arg_ders = [None] * len(A)
+        arg_ders = []
         i = 0
         for a in A:
-            arg_ders[i] = dict()
+            arg_ders.append(dict())
             for t in S.ind_vars:
                 arg_ders[i][t] = a.poly_derivative(t, self.eqs)
             i += 1
-        exps_old = [None] * (len(E) + len(LS.ind_vars) + len(ext[3]))
-        exps_new = [None] * (len(E) + len(LS.ind_vars) + len(ext[3]))
+        exps_old = []
+        exps_new = []
         i = 0
         for av in E:
-            exps_new[i] = Node(name=av)
-            exps_old[i] = Node(name=loaded_lib[0][E[av].name][1])
+            exps_new.append(Node(name=av))
+            exps_old.append(Node(name=loaded_lib[0][E[av].name][1]))
             i += 1
         for t in LS.ind_vars:
-            exps_old[i] = Node(name=t)
+            exps_old.append(Node(name=t))
             if t == 't':
-                exps_new[i] = A[0]
+                exps_new.append(A[0])
             else:
-                exps_new[i] = A[int(t[1:])-1]
+                exps_new.append(A[int(t[1:])-1])
             i += 1
         for j in range(i, len(exps_old)):
-            exps_old[j] = Node(name=f'p{j-i+1}')
-            exps_new[j] = ext[3][j-i]
+            exps_old.append(Node(name=f'p{j-i+1}'))
+            exps_new.append(ext[3][j-i])
         for i in range(len(E)):
             avname = exps_new[i].name
             self.eqs[avname] = dict()
@@ -324,9 +324,9 @@ class System():
 
 # generate system from library descriptor
 def load_lib_systems(lib):
-    res = [None] * len(lib[1])
+    res = []
     for i in range(len(lib[1])):
-        res[i] = System(desc=lib[1][i])
+        res.append(System(desc=lib[1][i]))
     return res
 
 def print_av(replaced: tuple):
