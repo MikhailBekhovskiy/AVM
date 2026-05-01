@@ -1,3 +1,5 @@
+from math import factorial
+
 def calculate_coef(k:int, p:int, eq_schema: list, initial_values: list, mon_schema: list, taylors: list):
     # добавляем очередную ячейку в k-ое разложение
     taylors[k].append(0)
@@ -53,6 +55,83 @@ def taylor_eval(coefs, t, t0):
         pow *= t - t0
     return res
 
+# полином от одной вещественной переменной
+def poly_eval(coefs, x):
+    res = coefs[0]
+    cur_pow = x
+    for i in range(1, len(coefs)):
+        res += cur_pow * coefs[i]
+        cur_pow *= x
+    return res
+
+# оценки
+# функция для подсчета нормы матрицы (оценка линейных систем)
+def matrix_norm(A):
+    maxx = -1
+    for row in A:
+        si = 0
+        for el in row:
+            si += abs(el)
+        if si > maxx:
+            maxx = si
+    return si
+
+# трансформирование матрицы масштабирующими множителями для линейных систем
+def scale_matrix(A, alpha):
+    B = []
+    for i in range(len(A)):
+        B.append([])
+        for j in range(len(A)):
+            B[i].append(A[i][j] * alpha[j]/alpha[i])
+    return B
+
+def inv_matrix_norm(A):
+    return 1 / matrix_norm(A)
+
+# ряд Тейлора для e^tau
+def e_tau(tau, M=5):
+    res = 0
+    for i in range(M+1):
+        res += tau ** i / factorial(i)
+    return res
+
+# эвристический подсчет масштабирующих множителей для линейной системы
+# в терминах вещественных переменных
+def lin_scale(taylors, A, tau=0.5, alphI=1):
+    # число фазовых переменных
+    n = len(A)
+    # 1 поделить на норму матрицы А
+    rho = inv_matrix_norm(A)
+    # посчитать e^tau
+    e_t = e_tau(tau)
+    sigmas = []
+    # посчитать сигмы для вещественного времени
+    # (в комплексном случае вместо tau комплексное число модуля tau
+    # и аргумента, максимизирующего все выражение)
+    for i in range(n):
+        sigmas.append(abs(poly_eval(taylors[i], rho*tau))/(e_t-1))
+    # подсчет возможных вариантов alpha и выбор набора, минимизирующего норму матрицы (макс. rho)
+    alphas_cands = []
+    max_rho = -1
+    mI = 0
+    for I in range(n):
+        alphas_cands.append([])
+        for i in range(n):
+            if i == I:
+                alphas_cands[I].append(alphI)
+            else:
+                if sigmas[I] == 0:
+                    sI = 0.001
+                else:
+                    sI = sigmas[I]
+                alphas_cands[I].append(alphI*sigmas[i]/sI)
+        rho = inv_matrix_norm(scale_matrix(A, alphas_cands[I]))
+        if rho > max_rho:
+            max_rho = rho
+            mI = I
+    return alphas_cands[mI]
+
+# промежуточная реализация метода рядов Тейлора с заданным списком шагов и заданными порядками разложения
 def base_tsm(eq_schema: list, mon_schema: list, initial_values: list, timepoints: list, ordering: list):
     ts = timepoints
     orders = ordering
