@@ -41,10 +41,10 @@ def get_series(order: int, initial_values: list, eq_schema: list, mon_schema: li
             calculate_coef(j, i+1, eq_schema, initial_values, mon_schema, taylors)
     return taylors
 
-def taylor_printout(coefs: list):
+def taylor_printout(coefs: list, t0: float):
     res = str(coefs[0])
     for i in range(1, len(coefs)):
-        res += f' + {coefs[i]} * (t-t0)^{i}'
+        res += f' + {coefs[i]:.2f} * (t-{t0:.2f})^{i}'
     return res
 
 def taylor_eval(coefs, t, t0):
@@ -97,7 +97,8 @@ def e_tau(tau, M=5):
 
 # эвристический подсчет масштабирующих множителей для линейной системы
 # в терминах вещественных переменных
-def lin_scale(taylors, A, tau=0.5, alphI=1):
+# и выбор соответствующего максимального шага
+def lin_scale_step(taylors, A, tau=0.5, alphI=1):
     # число фазовых переменных
     n = len(A)
     # 1 поделить на норму матрицы А
@@ -110,26 +111,23 @@ def lin_scale(taylors, A, tau=0.5, alphI=1):
     # и аргумента, максимизирующего все выражение)
     for i in range(n):
         sigmas.append(abs(poly_eval(taylors[i], rho*tau))/(e_t-1))
-    # подсчет возможных вариантов alpha и выбор набора, минимизирующего норму матрицы (макс. rho)
-    alphas_cands = []
+    # подсчет возможных вариантов alpha и поиск максимального ро для шага
+    alphas = [0] * len(A)
     max_rho = -1
-    mI = 0
     for I in range(n):
-        alphas_cands.append([])
         for i in range(n):
             if i == I:
-                alphas_cands[I].append(alphI)
+                alphas[i] = alphI
             else:
                 if sigmas[I] == 0:
                     sI = 0.001
                 else:
                     sI = sigmas[I]
-                alphas_cands[I].append(alphI*sigmas[i]/sI)
-        rho = inv_matrix_norm(scale_matrix(A, alphas_cands[I]))
+                alphas[i] = alphI*sigmas[i]/sI
+        rho = inv_matrix_norm(scale_matrix(A, alphas))
         if rho > max_rho:
             max_rho = rho
-            mI = I
-    return alphas_cands[mI]
+    return max_rho * tau
 
 # промежуточная реализация метода рядов Тейлора с заданным списком шагов и заданными порядками разложения
 def base_tsm(eq_schema: list, mon_schema: list, initial_values: list, timepoints: list, ordering: list):
@@ -157,24 +155,28 @@ if __name__=="__main__":
     # кортежи - коэффициент и порядковый номер монома.
     # первый элемент - свободный член
     eqs = [
-        [-5, (1, 3), (1, 0)],
-        [0, (1, 5), (4, 0)]
+        [-5, (1, 0), (1, 1)],
+        [2, (3, 0), (-4, 1)]
     ]
-
+    A = [
+        [1, 1],
+        [3, -4]
+    ]
+    a = [-5, 2]
     # схема, описывающая, мономы каких индексов при произведении дают нелинейный моном
     # 0: первая переменная
     # len(eqs) - 1: последняя переменная (в примере уравнений два, последняя переменная под индексом 1)
     # старше - нелинейные мономы; только они входят в схему
-    schema = [(0, 0), (2, 1), (1, 1), (4, 1)]
-    mons = ['x1', 'x2', 'x1^2', 'x1^2 * x2', 'x2^2', 'x2^3']
+    schema = []
+    mons = ['x1', 'x2']
     # начальные условия
-    iv = [0, 1, -1]
-    # временные точки
-    ts = [1, 2, 3, 4, 5]
-    # порядки разложений во временных точках
-    orders = [5, 5, 5, 5, 5]
-    R = base_tsm(eqs, schema, iv, ts, orders)
-    print(R)
-    
+    iv = [1, 2, -3]
+    # посчитать коэффициенты Тейлора около начальной точки
+    T = get_series(5, iv, eqs, schema)
+    for i in range(len(T)):
+        print(f'{mons[i]} = {taylor_printout(T[i], iv[0])}')
+    # посчитать масштабирующие множители
+    h = lin_scale_step(T, A)
+    print(f'Chosen stepsize: {h}')
     
     
