@@ -1,0 +1,32 @@
+Input system:
+Dependent variables:
+{'y1', 'y2'}
+Independent variables:
+{'x2', 'x1'}
+Detected functions:
+{'sin': (0, 1), 'ln': (0, 1), 'cos': (0, 1)}
+y1 = x1 ^ 5.0 * sin[x2]
+y2 = ln[x1] ^ 3.0 * cos[x2]
+=================
+Result:
+Dependent variables:
+{'y1', 'y2', 's4', 's3', 's2', 's1'}
+Independent variables:
+{'x2', 'x1'}
+Additional variables:
+s1: sin[x2]
+s2: cos[x2]
+s3: ln[x1]
+s4: inv[x1]
+Detected functions:
+{'sin': (0, 1), 'ln': (0, 1), 'cos': (0, 1)}
+y1 = x1 ^ 5.0 * s1
+y2 = s3 ^ 3.0 * s2
+ds1/dx2 = s2
+ds1/dx1 = 0.0
+ds2/dx2 = -s1
+ds2/dx1 = 0.0
+ds3/dx2 = 0.0
+ds3/dx1 = s4
+ds4/dx2 = 0.0
+ds4/dx1 = s4 ^ 2.0

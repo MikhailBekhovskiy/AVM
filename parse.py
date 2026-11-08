@@ -1,11 +1,17 @@
 # new version of parsing base on notations and tree
 
+# funcssign - signature of detected functions {fname: (paramnum, argnum)}
+type funcssign = dict[str, tuple[int,int]]
+
+# postparsed - postfix stack with function signature
+type postparsed = tuple[list[str], funcssign]
+
 # config; shouldn't be changed 
-binary_ops = {'*', '+', '-', '/', '^'}
-unary_ops = {'u-'}
-delim = {';', ','}
-parenth = {'(', ')', '[', ']'}
-priorities = {
+binary_ops: set[str] = {'*', '+', '-', '/', '^'}
+unary_ops: set[str] = {'u-'}
+delim: set[str] = {';', ','}
+parenth:set[str] = {'(', ')', '[', ']'}
+priorities: dict[str, int] = {
     '+': 0,
     '-': 0,
     'u-': 1,
@@ -62,7 +68,8 @@ def calc_args(inp: str, i: int) -> tuple[int, int]:
         return 0, pars + 1 
 
 # convert infix input to postfix and detect functions
-def inf2post(inp: str, funcs=dict()) -> tuple[list, dict]:
+# sorting station algorithm
+def inf2post(inp: str, funcs:funcssign=dict()) -> postparsed:
     i = 0
     stack = []
     res = []

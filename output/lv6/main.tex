@@ -1,0 +1,22 @@
+Input system:
+Dependent variables:
+{'y', 'x'}
+Independent variables:
+{'t'}
+Detected functions:
+{'inv': (0, 1)}
+dx/dt = a * x - b * x * y * inv[(1.0 + A * x) * (1.0 + B * y)]
+dy/dt = -c * y + d * x * y * inv[(1.0 + A * x) * (1.0 + B * y)]
+=================
+Result:
+Dependent variables:
+{'s1', 'y', 'x'}
+Independent variables:
+{'t'}
+Additional variables:
+s1: inv[(1.0 + A * x) * (1.0 + B * y)]
+Detected functions:
+{'inv': (0, 1)}
+dx/dt = a * x - b * x * y * s1
+dy/dt = -c * y + d * x * y * s1
+ds1/dt = s1 ^ 2.0 * ((a * x - b * x * y * s1) * A * (1.0 + B * y) + (-c * y + d * x * y * s1) * B * (1.0 + A * x))

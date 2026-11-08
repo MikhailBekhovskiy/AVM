@@ -1,0 +1,20 @@
+Input system:
+Dependent variables:
+{'x'}
+Independent variables:
+{'t'}
+Detected functions:
+{'inv': (0, 1)}
+dx/dt = b * x ^ 2.0 * (K - x) * inv[K * (N + x)]
+=================
+Result:
+Dependent variables:
+{'s1', 'x'}
+Independent variables:
+{'t'}
+Additional variables:
+s1: inv[K * (N + x)]
+Detected functions:
+{'inv': (0, 1)}
+dx/dt = b * x ^ 2.0 * (K - x) * s1
+ds1/dt = s1 ^ 2.0 * b * x ^ 2.0 * (K - x) * s1 * K

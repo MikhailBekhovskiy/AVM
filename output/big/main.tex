@@ -1,0 +1,124 @@
+Input system:
+Dependent variables:
+{'y3', 'y6', 'y4', 'y1', 'y2', 'y5'}
+Independent variables:
+{'x3', 'b', 'x2', 'a', 'x1'}
+Detected functions:
+{'sin': (0, 1), 'cos': (0, 1), 'ln': (0, 1), 'Dv': (3, 1), 'EK': (0, 2), 'ch': (0, 1), 'sh': (0, 1)}
+y1 = x3 ^ 3.0 * sin[cos[a * ln[x2] ^ 2.0 + b * x3]] + x3 ^ 3.0 * b * ln[x2] ^ 4.0 + sin[a * ln[x2] ^ 2.0 + b * x3] ^ 5.0 + Dv[g ^ 2.0, 1.0, -1.0; x1]
+y2 = sin[cos[a * ln[x2] ^ 2.0 + b * x3]] + b * ln[x2] ^ 4.0 + sin[a * ln[x2] ^ 2.0 + b * x3] ^ 5.0 + Dv[g ^ 2.0, 1.0, -1.0; x1]
+y3 = x2 ^ 2.0 * cos[sin[a * ln[x2] ^ 2.0 + b * x3]] + cos[a * ln[x2] ^ 2.0 + b * x3] ^ 4.0 + EK[sin[sin[a * ln[x2] ^ 2.0 + b * x3]], x1] ^ 2.0
+y4 = x2 ^ 2.0 * cos[sin[a * ln[x2] ^ 2.0 + b * x3]] + cos[a * ln[x2] ^ 2.0 + b * x3] ^ 4.0 + EK[sin[sin[a * ln[x2] ^ 2.0 + b * x3]], x1]
+y5 = x1 ^ 2.0 * ch[a * ln[x2] ^ 2.0 + b * x3] ^ 2.0 + x1 ^ 2.0 * sin[a * ln[x2] ^ 2.0 + b * x3] + sh[a * ln[x2] ^ 2.0 + b * x3] ^ 5.0
+y6 = x1 * ch[a * ln[x2] ^ 2.0 + b * x3] ^ 2.0 + x1 * sin[a * ln[x2] ^ 2.0 + b * x3] + sh[a * ln[x2] ^ 2.0 + b * x3] ^ 5.0
+=================
+Result:
+Dependent variables:
+{'s11', 'y6', 'y1', 's10', 'y5', 's2', 's1', 'y3', 's7', 's14', 's15', 's16', 's6', 's4', 's5', 'y4', 's8', 's9', 'y2', 's12', 's3', 's13'}
+Independent variables:
+{'x3', 'x2', 'b', 'a', 'x1'}
+Additional variables:
+s1: ln[x2]
+s2: inv[x2]
+s3: cos[a * s1 ^ 2.0 + b * x3]
+s4: sin[a * s1 ^ 2.0 + b * x3]
+s5: sin[s3]
+s6: cos[s3]
+s7: Dv[g ^ 2.0, 1.0, -1.0; x1]
+s8: DV[g ^ 2.0, 1.0, -1.0; x1]
+s9: cos[s4]
+s10: sin[s4]
+s11: EK[s10, x1]
+s12: EKs[s10, x1]
+s13: EKc[s10, x1]
+s14: EKi[s10, x1]
+s15: ch[a * s1 ^ 2.0 + b * x3]
+s16: sh[a * s1 ^ 2.0 + b * x3]
+Detected functions:
+{'sin': (0, 1), 'cos': (0, 1), 'ln': (0, 1), 'Dv': (3, 1), 'EK': (0, 2), 'ch': (0, 1), 'sh': (0, 1)}
+y1 = x3 ^ 3.0 * s5 + x3 ^ 3.0 * b * s1 ^ 4.0 + s4 ^ 5.0 + s7
+y2 = s5 + b * s1 ^ 4.0 + s4 ^ 5.0 + s7
+y3 = x2 ^ 2.0 * s9 + s3 ^ 4.0 + s11 ^ 2.0
+y4 = x2 ^ 2.0 * s9 + s3 ^ 4.0 + s11
+y5 = x1 ^ 2.0 * s15 ^ 2.0 + x1 ^ 2.0 * s4 + s16 ^ 5.0
+y6 = x1 * s15 ^ 2.0 + x1 * s4 + s16 ^ 5.0
+ds1/dx3 = 0.0
+ds1/dx2 = s2
+ds1/db = 0.0
+ds1/da = 0.0
+ds1/dx1 = 0.0
+ds2/dx3 = 0.0
+ds2/dx2 = s2 ^ 2.0
+ds2/db = 0.0
+ds2/da = 0.0
+ds2/dx1 = 0.0
+ds3/dx3 = (-s4) * b
+ds3/dx2 = (-s4) * 2.0 * s1 * s2 * a
+ds3/db = (-s4) * x3
+ds3/da = (-s4) * s1 ^ 2.0
+ds3/dx1 = 0.0
+ds4/dx3 = s3 * b
+ds4/dx2 = s3 * 2.0 * s1 * s2 * a
+ds4/db = s3 * x3
+ds4/da = s3 * s1 ^ 2.0
+ds4/dx1 = 0.0
+ds5/dx3 = s6 * (-s4) * b
+ds5/dx2 = s6 * (-s4) * 2.0 * s1 * s2 * a
+ds5/db = s6 * (-s4) * x3
+ds5/da = s6 * (-s4) * s1 ^ 2.0
+ds5/dx1 = 0.0
+ds6/dx3 = (-s5) * (-s4) * b
+ds6/dx2 = (-s5) * (-s4) * 2.0 * s1 * s2 * a
+ds6/db = (-s5) * (-s4) * x3
+ds6/da = (-s5) * (-s4) * s1 ^ 2.0
+ds6/dx1 = 0.0
+ds7/dx3 = 0.0
+ds7/dx2 = 0.0
+ds7/db = 0.0
+ds7/da = 0.0
+ds7/dx1 = s8
+ds8/dx3 = 0.0
+ds8/dx2 = 0.0
+ds8/db = 0.0
+ds8/da = 0.0
+ds8/dx1 = -(p1 * x1 ^ 2.0 + p2 * x1 + p3) * s7
+ds9/dx3 = (-s10) * s3 * b
+ds9/dx2 = (-s10) * s3 * 2.0 * s1 * s2 * a
+ds9/db = (-s10) * s3 * x3
+ds9/da = (-s10) * s3 * s1 ^ 2.0
+ds9/dx1 = 0.0
+ds10/dx3 = s9 * s3 * b
+ds10/dx2 = s9 * s3 * 2.0 * s1 * s2 * a
+ds10/db = s9 * s3 * x3
+ds10/da = s9 * s3 * s1 ^ 2.0
+ds10/dx1 = 0.0
+ds11/dx3 = s14 * s9 * s3 * b
+ds11/dx2 = s14 * s9 * s3 * 2.0 * s1 * s2 * a
+ds11/db = s14 * s9 * s3 * x3
+ds11/da = s14 * s9 * s3 * s1 ^ 2.0
+ds11/dx1 = s12 * s14
+ds12/dx3 = s13 * s14 * s9 * s3 * b
+ds12/dx2 = s13 * s14 * s9 * s3 * 2.0 * s1 * s2 * a
+ds12/db = s13 * s14 * s9 * s3 * x3
+ds12/da = s13 * s14 * s9 * s3 * s1 ^ 2.0
+ds12/dx1 = s12 * s13 * s14
+ds13/dx3 = (-s12 * s14) * s9 * s3 * b
+ds13/dx2 = (-s12 * s14) * s9 * s3 * 2.0 * s1 * s2 * a
+ds13/db = (-s12 * s14) * s9 * s3 * x3
+ds13/da = (-s12 * s14) * s9 * s3 * s1 ^ 2.0
+ds13/dx1 = -s12 ^ 2.0 * s14
+ds14/dx3 = (-s10 * s14 ^ 3.0 * s12) * s9 * s3 * b
+ds14/dx2 = (-s10 * s14 ^ 3.0 * s12) * s9 * s3 * 2.0 * s1 * s2 * a
+ds14/db = (-s10 * s14 ^ 3.0 * s12) * s9 * s3 * x3
+ds14/da = (-s10 * s14 ^ 3.0 * s12) * s9 * s3 * s1 ^ 2.0
+ds14/dx1 = s13 * s14 ^ 2.0 - s10 * s12 ^ 2.0 * s14 ^ 3.0
+ds15/dx3 = s16 * b
+ds15/dx2 = s16 * 2.0 * s1 * s2 * a
+ds15/db = s16 * x3
+ds15/da = s16 * s1 ^ 2.0
+ds15/dx1 = 0.0
+ds16/dx3 = s15 * b
+ds16/dx2 = s15 * 2.0 * s1 * s2 * a
+ds16/db = s15 * x3
+ds16/da = s15 * s1 ^ 2.0
+ds16/dx1 = 0.0

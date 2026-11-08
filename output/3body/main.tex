@@ -1,0 +1,58 @@
+Input system:
+Dependent variables:
+{'x3', 'z1', 'y3', 'z3', 'p2', 'r2', 'p1', 'q2', 'r3', 'q3', 'y1', 'x2', 'y2', 'z2', 'q1', 'p3', 'r1', 'x1'}
+Independent variables:
+{'t'}
+Detected functions:
+{'isqrt': (0, 1)}
+dx1/dt = p1
+dy1/dt = r1
+dz1/dt = q1
+dx2/dt = p2
+dy2/dt = r2
+dz2/dt = q2
+dx3/dt = p3
+dy3/dt = r3
+dz3/dt = q3
+dp1/dt = G * m2 * (x2 - x1) * isqrt[(x1 - x2) ^ 2.0 + (y1 - y2) ^ 2.0 + (z1 - z2) ^ 2.0] ^ 3.0 + G * m3 * (x3 - x1) * isqrt[(x1 - x3) ^ 2.0 + (y1 - y3) ^ 2.0 + (z1 - z3) ^ 2.0] ^ 3.0
+dr1/dt = G * m2 * (y2 - y1) * isqrt[(x1 - x2) ^ 2.0 + (y1 - y2) ^ 2.0 + (z1 - z2) ^ 2.0] ^ 3.0 + G * m3 * (y3 - y1) * isqrt[(x1 - x3) ^ 2.0 + (y1 - y3) ^ 2.0 + (z1 - z3) ^ 2.0] ^ 3.0
+dq1/dt = G * m2 * (z2 - z1) * isqrt[(x1 - x2) ^ 2.0 + (y1 - y2) ^ 2.0 + (z1 - z2) ^ 2.0] ^ 3.0 + G * m3 * (z3 - z1) * isqrt[(x1 - x3) ^ 2.0 + (y1 - y3) ^ 2.0 + (z1 - z3) ^ 2.0] ^ 3.0
+dp2/dt = G * m1 * (x1 - x2) * isqrt[(x1 - x2) ^ 2.0 + (y1 - y2) ^ 2.0 + (z1 - z2) ^ 2.0] ^ 3.0 + G * m3 * (x3 - x2) * isqrt[(x2 - x3) ^ 2.0 + (y2 - y3) ^ 2.0 + (z2 - z3) ^ 2.0] ^ 3.0
+dr2/dt = G * m1 * (y1 - y2) * isqrt[(x1 - x2) ^ 2.0 + (y1 - y2) ^ 2.0 + (z1 - z2) ^ 2.0] ^ 3.0 + G * m3 * (y3 - y2) * isqrt[(x2 - x3) ^ 2.0 + (y2 - y3) ^ 2.0 + (z2 - z3) ^ 2.0] ^ 3.0
+dq2/dt = G * m1 * (z1 - z2) * isqrt[(x1 - x2) ^ 2.0 + (y1 - y2) ^ 2.0 + (z1 - z2) ^ 2.0] ^ 3.0 + G * m3 * (z3 - z2) * isqrt[(x2 - x3) ^ 2.0 + (y2 - y3) ^ 2.0 + (z2 - z3) ^ 2.0] ^ 3.0
+dp3/dt = G * m1 * (x1 - x3) * isqrt[(x1 - x3) ^ 2.0 + (y1 - y3) ^ 2.0 + (z1 - z3) ^ 2.0] ^ 3.0 + G * m2 * (x2 - x3) * isqrt[(x2 - x3) ^ 2.0 + (y2 - y3) ^ 2.0 + (z2 - z3) ^ 2.0] ^ 3.0
+dr3/dt = G * m1 * (y1 - y3) * isqrt[(x1 - x3) ^ 2.0 + (y1 - y3) ^ 2.0 + (z1 - z3) ^ 2.0] ^ 3.0 + G * m2 * (y2 - y3) * isqrt[(x2 - x3) ^ 2.0 + (y2 - y3) ^ 2.0 + (z2 - z3) ^ 2.0] ^ 3.0
+dq3/dt = G * m1 * (z1 - z3) * isqrt[(x1 - x3) ^ 2.0 + (y1 - y3) ^ 2.0 + (z1 - z3) ^ 2.0] ^ 3.0 + G * m2 * (z2 - z3) * isqrt[(x2 - x3) ^ 2.0 + (y2 - y3) ^ 2.0 + (z2 - z3) ^ 2.0] ^ 3.0
+=================
+Result:
+Dependent variables:
+{'x3', 'z3', 'r2', 'r3', 'q3', 'y1', 'z2', 's2', 's1', 'y3', 'z1', 'p2', 'p1', 'q2', 'x2', 'y2', 'q1', 'p3', 's3', 'r1', 'x1'}
+Independent variables:
+{'t'}
+Additional variables:
+s1: isqrt[(x1 - x2) ^ 2.0 + (y1 - y2) ^ 2.0 + (z1 - z2) ^ 2.0]
+s2: isqrt[(x1 - x3) ^ 2.0 + (y1 - y3) ^ 2.0 + (z1 - z3) ^ 2.0]
+s3: isqrt[(x2 - x3) ^ 2.0 + (y2 - y3) ^ 2.0 + (z2 - z3) ^ 2.0]
+Detected functions:
+{'isqrt': (0, 1)}
+dx1/dt = p1
+dy1/dt = r1
+dz1/dt = q1
+dx2/dt = p2
+dy2/dt = r2
+dz2/dt = q2
+dx3/dt = p3
+dy3/dt = r3
+dz3/dt = q3
+dp1/dt = G * m2 * (x2 - x1) * s1 ^ 3.0 + G * m3 * (x3 - x1) * s2 ^ 3.0
+dr1/dt = G * m2 * (y2 - y1) * s1 ^ 3.0 + G * m3 * (y3 - y1) * s2 ^ 3.0
+dq1/dt = G * m2 * (z2 - z1) * s1 ^ 3.0 + G * m3 * (z3 - z1) * s2 ^ 3.0
+dp2/dt = G * m1 * (x1 - x2) * s1 ^ 3.0 + G * m3 * (x3 - x2) * s3 ^ 3.0
+dr2/dt = G * m1 * (y1 - y2) * s1 ^ 3.0 + G * m3 * (y3 - y2) * s3 ^ 3.0
+dq2/dt = G * m1 * (z1 - z2) * s1 ^ 3.0 + G * m3 * (z3 - z2) * s3 ^ 3.0
+dp3/dt = G * m1 * (x1 - x3) * s2 ^ 3.0 + G * m2 * (x2 - x3) * s3 ^ 3.0
+dr3/dt = G * m1 * (y1 - y3) * s2 ^ 3.0 + G * m2 * (y2 - y3) * s3 ^ 3.0
+dq3/dt = G * m1 * (z1 - z3) * s2 ^ 3.0 + G * m2 * (z2 - z3) * s3 ^ 3.0
+ds1/dt = (-0.5 * s1 ^ 3.0) * (2.0 * (x1 - x2) * (p1 - p2) + 2.0 * (y1 - y2) * (r1 - r2) + 2.0 * (z1 - z2) * (q1 - q2))
+ds2/dt = (-0.5 * s2 ^ 3.0) * (2.0 * (x1 - x3) * (p1 - p3) + 2.0 * (y1 - y3) * (r1 - r3) + 2.0 * (z1 - z3) * (q1 - q3))
+ds3/dt = (-0.5 * s3 ^ 3.0) * (2.0 * (x2 - x3) * (p2 - p3) + 2.0 * (y2 - y3) * (r2 - r3) + 2.0 * (z2 - z3) * (q2 - q3))

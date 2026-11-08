@@ -4,9 +4,10 @@
 # Node is a token of several possible origins: dependent variable (with children and dependencies)
 # independent variable (without children and dependencies, i.e. all its derivatives are 0, might be numeric or a parameter)
 # n-nary operation (functions to be replaced by additional variables, +, *, - to stay)
-from proto_parse import *
+from parse import *
+type monodesc = dict[str, float]
 
-def factorial(n):
+def factorial(n: int) -> int:
     if n >= 0:
         if n == 0 or n == 1:
             return 1
@@ -15,27 +16,102 @@ def factorial(n):
             for i in range(3, n + 1):
                 res *= i
             return res
+    else:
+        return -1
 
-def Cnk(n, k):
+def Cnk(n: int, k: int) -> int:
     if k >= 0 and n >= k:
-        return factorial(n) / factorial(k) / factorial(n-k)
+        return factorial(n) // factorial(k) // factorial(n-k)
+    return -1
+
+def merge_descriptors(L: dict[str, float], R: dict[str, float]) -> dict[str, float]:
+    res = {'coef': L['coef'] * R['coef']}
+    for var in L:
+        if var != 'coef':
+            res[var] = L[var]
+    for var in R:
+        if var != 'coef':
+            if var in res:
+                res[var] += R[var]
+            else:
+                res[var] = R[var]
+    return res
+
+def descriptor_comparator(L: monodesc, R: monodesc) -> bool:
+    for v in L:
+        if v != 'coef':
+            if v not in R or R[v] != L[v]:
+                return False
+    for v in R:
+        if v !='coef':
+            if v not in L or R[v] != L[v]:
+                return False
+    return True
+
+def descriptor_adder(L: monodesc, R:monodesc) -> monodesc:
+    if descriptor_comparator(L, R):
+        L['coef'] += R['coef']
+        return L
+    else:
+        print('Different monos. Returning first unchanged.')
+        return L
+
+def desc_copy(L:monodesc) -> monodesc:
+    res: monodesc = dict()
+    for v in L:
+        res[v] = L[v]
+    return res
+
+def descriptor_squash(M: list[monodesc]) -> list[monodesc]:
+    res: list[monodesc] = []
+    for i in range(len(M)-1):
+        r = {'coef': 0.}
+        if 'checked' not in M[i]:
+            r = desc_copy(M[i])
+            for j in range(i+1, len(M)):
+                if 'checked' not in M[j] and descriptor_comparator(M[i], M[j]):
+                    r['coef'] += M[j]['coef']
+                    M[j]['checked'] = 1.
+        if r['coef'] != 0.:
+            res.append(r)
+    return res
+
+def mono_power(m: monodesc) -> float:
+    res = 0.
+    for x in m:
+        if x != 'coef':
+            res += m[x]
+    return res
+
+def mlm(L: monodesc, R: monodesc) -> bool:
+    lp = mono_power(L)
+    rp = mono_power(R)
+    if lp < rp:
+        return True
+    else:
+        return False
+
+def monosort(M: list[monodesc]):
+    for i in range(len(M)):
+        for j in range(len(M)-i-1):
+            if mlm(M[j], M[j+1]):
+                M[j], M[j+1] = M[j+1], M[j]
+ 
+    
 
 class Node():
+    name: str
+    value: float
+    children: list["Node"]
+    params: list[str]
     # initialize by name or numeric value; parametres are stored for function nodes
-    def __init__(self, name=None, val=None, children=[], params=[]):
-        if name == None:
-            self.name = 'num'
-            if val == None:
-                self.value = 0.
-            else:
-                self.value = val
-        else:
-            self.name = name
-            self.value = val
+    def __init__(self, name: str='num', val: float=0., children:list["Node"]=[], params:list["Node"]=[]):
+        self.name = name
+        self.value = val
         self.kids = children
         self.parameters = params
 
-    def __str__(self):
+    def __str__(self, latex=False):
         if self.name == 'num':
             return str(self.value)
         elif len(self.kids) == 0:
@@ -88,7 +164,7 @@ class Node():
         elif self.name == 'u-':
             return self.kids[0].copy()
         else:
-            return Node(name='u-', children = [self.copy()])   
+            return Node(name='*', children = [Node(val=-1.), self.copy()])   
 
     def __add__(self, b):
         if self.name == 'num' and b.name == 'num':
@@ -163,7 +239,7 @@ class Node():
                 print(p)
 
     # check whether expression is polynomial (contains functions; functions are detected during parsing)  
-    def is_poly(self, funcs: dict) -> bool:
+    def is_poly(self, funcs: dict[str, tuple[int, int]]) -> bool:
         if self.name in funcs or self.name == '/' or (self.name == '^' and self.kids[1].name != 'num'):
             return False
         elif len(self.kids) == 0:
@@ -174,7 +250,7 @@ class Node():
                     return False
             return True
 
-    def is_mono(self):
+    def is_mono(self) -> bool:
         if len(self.kids) == 0:
             return True
         elif self.name not in {'*', '^'}:
@@ -186,7 +262,7 @@ class Node():
             return True
     # get derivative of polynomial expression accounting for polynomial de system
     # dictionary has depth 2 and Node instances as leaves
-    def poly_derivative(self, var, system = dict()):
+    def poly_derivative(self, var:str, system:dict[str, dict[str, "Node"]] = dict()) -> "Node":
         if len(self.kids) == 0:
             if self.name == var:
                 return Node(val=1.)
@@ -196,7 +272,7 @@ class Node():
                 return Node(val=0.)
         # composite function differentiation
         else:
-            k_ders = [None] * len(self.kids)
+            k_ders = [Node()] * len(self.kids)
             # recursively find derivatives of node children
             for i in range(len(self.kids)):
                 k_ders[i] = self.kids[i].poly_derivative(var, system)
@@ -216,10 +292,10 @@ class Node():
                 return Node(val=self.kids[1].value) * self.kids[0] ** Node(val = self.kids[1].value - 1) * k_der
             else:
                 print('Unforeseen complications')
-                return None
+                return Node()
 
     # find functions with polynomial arguments; finds all candidates
-    def find_poly_funcs(self, funcs: dict, cands=[]):
+    def find_poly_funcs(self, funcs: funcssign, cands:list["Node"]=[]) -> list["Node"]:
         if len(self.kids) == 0:
             return cands
         else:
@@ -236,7 +312,7 @@ class Node():
             return cands
     
     # substite expression; recursive; returns NEW instance
-    def substitute(self, exp_old, exp_new):
+    def substitute(self, exp_old: "Node", exp_new: "Node") -> "Node":
         neu = self.copy()
         if neu == exp_old:
             return exp_new.copy()
@@ -247,162 +323,132 @@ class Node():
 
     # substitute several expressions (used in additional variables insertion step)
     # return NEW instance
-    def bulk_substitute(self, exps_old: list, exps_new: list):
+    def bulk_substitute(self, exps_old: list["Node"], exps_new: list["Node"]) -> "Node":
         neu = self.copy()
         for i in range(len(exps_old)):
             neu = neu.substitute(exps_old[i], exps_new[i])
         return neu
 
-    def mon_dec(self):
-        if self.is_mono():
-            if len(self.kids) == 0 or self.name == '^':
-                return [self]
-            else:
-                return self.kids[0].mon_dec() + self.kids[1].mon_dec()
-
-    def get_mon_decs(self):
-        if self.is_mono():
-            return [self.mon_dec()]
+    # top-level (root) parenthesis opener and minus eliminator
+    def open_parenthesis(self) -> "Node":
+        #(g + h)*f case
+        if self.name == '*' and self.kids[0].name == '+':
+            f = self.kids[1].copy()
+            g = self.kids[0].kids[0].copy()
+            h = self.kids[0].kids[1].copy()
+            return f * g + f * h
+        # f * (g+h) case
+        if self.name == '*' and self.kids[1].name == '+':
+            f = self.kids[0].copy()
+            g = self.kids[1].kids[0].copy()
+            h = self.kids[1].kids[1].copy()
+            return f * g + f * h
+        #(g - h)*f case
+        if self.name == '*' and self.kids[0].name == '-':
+            f = self.kids[1].copy()
+            g = self.kids[0].kids[0].copy()
+            h = self.kids[0].kids[1].copy()
+            return f * g - f * h
+        # f * (g - h) case
+        if self.name == '*' and self.kids[1].name == '-':
+            f = self.kids[0].copy()
+            g = self.kids[1].kids[0].copy()
+            h = self.kids[1].kids[1].copy()
+            return f * g - f * h
+        # (f*g) ^ n case
+        if self.name == '^' and self.kids[0].name == '*':
+            f = self.kids[0].kids[0].copy()
+            g = self.kids[0].kids[1].copy()
+            n = self.kids[1].copy()
+            return (f ** n) * (g ** n)
+        # (f + g) ^ n case
+        if self.name == '^' and self.kids[0].name == '+':
+            f = self.kids[0].kids[0].copy()
+            g = self.kids[0].kids[1].copy()
+            n = self.kids[1].copy()
+            result = Node()
+            for k in range(int(n.value) + 1):
+                cf = Cnk(int(n.value), k)
+                result += Node(val=float(cf)) * (f ** Node(val=n.value - k)) * (g ** Node(val=float(k)))
+            return result
+        # (f - g) ^ n case
+        if self.name == '^' and self.kids[0].name == '-':
+            f = self.kids[0].kids[0].copy()
+            g = self.kids[0].kids[1].copy()
+            n = self.kids[1].copy()
+            result = Node()
+            for k in range(int(n.value) + 1):
+                cf = Cnk(int(n.value), k)
+                result += Node(val=float((-1)**k)) * Node(val=float(cf)) * (f ** Node(val=n.value - k)) * (g ** Node(val=float(k)))
+            return result
+        # u- conversion for simplicity
+        if self.name == 'u-':
+            f = self.kids[0].copy()
+            return -f
+        # f - g = f + (-1) * g conversion for simplicity
+        if self.name == '-':
+            f = self.kids[0].copy()
+            g = self.kids[1].copy()
+            return f + (-g)
         else:
-            return self.kids[0].get_mon_decs() + self.kids[1].get_mon_decs()
+            print('Unknown simplification')
+            return self
 
-    def is_balanceable(self, debug=False):
-        if (self.name == '^' and self.kids[0].name in {'^', '*', '+', '-', 'u-'}):
-            if debug:
-                print(f'Unbalance at:')
-                self.det_nod_print()
-            return True
-        if self.name == '*' and (self.kids[0].name in {'+', '-', 'u-'} or self.kids[1].name in {'+', '-', 'u-'}):
-            if debug:
-                print(f'Unbalance at:')
-                self.det_nod_print()
-            return True
-        for k in self.kids:
-            if k.is_balanceable(debug=debug):
-                return True
-        return False
-
-    def balance_power(self):
-        if len(self.kids) == 0 or len(self.kids[0].kids) == 0:
-            return self.copy()
-        elif self.name == '^':
-            n = int(self.kids[1].value)
-            if self.kids[0].name == '*':
-                a = self.kids[0].kids[0].copy()
-                b = self.kids[0].kids[1].copy()
-                res = a ** n * b ** n
-            elif self.kids[0].name == '+':
-                res = Node(val=0)
-                a = self.kids[0].kids[0].copy()
-                b = self.kids[0].kids[1].copy()
-                for k in range(n + 1):
-                    res += Node(val=Cnk(n, k)) * a ** (n-k) * b ** k
-            elif self.kids[0].name == '-':
-                res = Node(val=0)
-                a = self.kids[0].kids[0].copy()
-                b = -self.kids[0].kids[1].copy()
-                for k in range(n + 1):
-                    res += Node(val=Cnk(n, k)) * a ** (n-k) * b ** k
-            elif self.kids[0].name == 'u-':
-                a = self.kids[0].kids[0].copy()
-                if int(self.kids[1].value) % 2 == 0:
-                    res = a ** n
-                else:
-                    res = -a ** n
-            elif self.kids[0].name == '^':
-                m = int(self.kids[0].kids[1].value)
-                a = self.kids[0].kids[0].copy()
-                res = a ** (m*n)
-                res = res.balance_power()
-            else:
-                res = self.copy()
-        else:
-            res = self.copy()
-        for i in range(len(res.kids)):
-            res.kids[i] = res.kids[i].balance_power()
-        return res
-
-    def balance_mult(self):
+    # stops at first one or two parentheses occurences;
+    # fires a flag if a change has occurred
+    def shallow_opener(self) -> tuple["Node", bool]:
         if len(self.kids) == 0:
-            return self.copy()
-        elif self.name == '*':
-            if self.kids[0].name == 'u-':
-                a = self.kids[0].kids[0].copy()
-                b = self.kids[1].copy()
-                res = -(a * b)
-            elif self.kids[1].name == 'u-':
-                a = self.kids[0].copy()
-                b = self.kids[1].kids[0].copy()
-                res = -(a * b)
-            elif self.kids[0].name == '+':
-                a = self.kids[0].kids[0].copy()
-                b = self.kids[0].kids[1].copy()
-                c = self.kids[1].copy()
-                res = a * c + b * c
-            elif self.kids[1].name == '+':
-                a = self.kids[1].kids[0].copy()
-                b = self.kids[1].kids[1].copy()
-                c = self.kids[0].copy()
-                res = a * c + b * c
-            elif self.kids[0].name == '-':
-                a = self.kids[0].kids[0].copy()
-                b = self.kids[0].kids[1].copy()
-                c = self.kids[1].copy()
-                res = a * c - b * c
-            elif self.kids[1].name == '-':
-                a = self.kids[1].kids[0].copy()
-                b = self.kids[1].kids[1].copy()
-                c = self.kids[0].copy()
-                res = a * c - b * c
-            else:
-                res = self.copy()
+            return self.copy(), False
+        if self.name == '*' and (self.kids[0].name in {'+', '-'} or self.kids[1].name in {'+', '-'}) or \
+            self.name == '^' and (self.kids[0].name in {'*', '+', '-'}) or\
+            self.name in {'u-', '-'}:
+            return self.open_parenthesis(), True
         else:
-            res = self.copy()
-        for i in range(len(res.kids)):
-            res.kids[i] = res.kids[i].balance_mult()
-        return res
+            self.kids[0], l = self.kids[0].shallow_opener()
+            self.kids[1], r = self.kids[1].shallow_opener()
+            return self.copy(), l or r
 
-    def balance_min(self):
-        if len(self.kids) == 0:
-            return self.copy()
-        elif self.name == '-':
-            a = self.kids[0].copy()
-            b = -self.kids[1].copy()
-            res = a + b
-        elif self.name == 'u-':
-            if self.kids[0].is_mono():
-                return Node(val=-1) * self.kids[0].copy()
-            elif self.kids[0].name == 'u-':
-                res = self.kids[0].kids[0].copy()
-            else:
-                a = -self.kids[0].kids[0].copy()
-                b = -self.kids[0].kids[1].copy()
-                res = Node(name=self.kids[0].name, children = [a, b])
+    def deep_opener(self) -> "Node":
+        still = True
+        while still:
+            self, still = self.shallow_opener()
+        return self.copy()
+
+    def monomial_descriptor(self) -> dict[str, float]:
+        if self.name == 'num':
+            descriptor = {'coef': self.value}
+            return descriptor
+        if self.name == '^':
+            if self.kids[0].name == 'num':
+                descriptor = {'coef': self.kids[0].value ** self.kids[1].value}
+                return descriptor
+            descriptor = {'coef': 1., self.kids[0].name: self.kids[1].value}
+            return descriptor
+        if self.name == '*':
+            L = self.kids[0].monomial_descriptor()
+            R = self.kids[1].monomial_descriptor()
+            return merge_descriptors(L, R)
+        if self.name != '+':
+            return {'coef': 1., self.name: 1.}
         else:
-            res = self.copy()
-        for i in range(len(res.kids)):
-            res.kids[i] = res.kids[i].balance_min()
-        return res
-    
-    # normalize expression 
-    def balance(self):
-        r = self.copy()
-        r = r.balance_power()
-        while r.is_balanceable():
-            r = r.balance_mult()
-        r = r.balance_min()
-        return r
-            
+            print('Not a monomial')
+            return {'undefined': -1}
+
+    def get_all_mono_descs(self) -> list[dict[str, float]]:
+        if self.name != '+':
+            return [self.monomial_descriptor()]
+        else:
+            return self.kids[0].get_all_mono_descs() + self.kids[1].get_all_mono_descs()
 
     # deep recursive copy
-    def copy(self):
+    def copy(self) -> "Node":
         if len(self.kids) == 0:
             return Node(name=self.name, val=self.value)
         else:
             return Node(name=self.name, val=self.value, params=self.parameters, children=[k.copy() for k in self.kids])
     
     # detect variables in expression recursively
-    def var_detector(self) -> set:
+    def var_detector(self) -> set[str]:
         if self.name == 'num':
             return set()
         elif len(self.kids) == 0:
@@ -414,8 +460,8 @@ class Node():
             return vars
         
     # expression polynomization; 
-    def polynomize(self, funcs):
-        sub = dict()
+    def polynomize(self, funcs: funcssign) -> tuple["Node", dict[str, "Node"]]:
+        sub: dict[str, "Node"] = dict()
         i = 0
         while not self.is_poly(funcs):
             cands = self.find_poly_funcs(funcs)
@@ -424,110 +470,39 @@ class Node():
             i += 1
         return self, sub
 
-def mon_dec_norm(monoms):
-    for i in range(len(monoms)):
-        m = monoms[i]
-        d = {'coef': 1}
-        for v in m:
-            if v.name == 'num':
-                d['coef'] *= v.value
-            elif v.name == '^':
-                if v.kids[0].name not in d:
-                    d[v.kids[0].name] = v.kids[1].value
-                else:
-                    d[v.kids[0].name] += v.kids[1].value
-            else:
-                if v.name not in d:
-                    d[v.name] = 1
-                else:
-                    d[v.name] += 1
-        monoms[i] = d
-    return monoms
-
-def mon_eq(m1, m2):
-    if len(m1) != len(m2):
-        return False
-    for v in m1:
-        if v != 'coef':
-            if v not in m2 or m1[v] != m2[v]:
-                return False
-    return True
-
-def mon_power(m):
-    p = 0
+def mono2exp(m: monodesc) -> Node:
+    res = Node(val=m['coef'])
     for v in m:
         if v != 'coef':
-            p += m[v]
-    return p
-
-def simplify(mons):
-    for i in range(len(mons)):
-        if mons[i]['coef'] != 0:
-            for j in range(i + 1, len(mons)):
-                if mons[j]['coef'] != 0 and mon_eq(mons[i], mons[j]):
-                    mons[i]['coef'] += mons[j]['coef']
-                    mons[j]['coef'] = 0
-    res = []
-    for m in mons:
-        if m['coef'] != 0:
-            res.append(m)
+            res *= Node(name=v) ** Node(val=m[v])
     return res
 
-def vlv(v1, v2):
-    if v1[0] < v2[0]:
-        return True
-    if v1[0] == v2[0]:
-        if len(v2) == 1:
-            return False
-        if len(v1) == 1:
-            return True
-        if int(v1[1:]) < int(v2[1:]):
-            return True
-    return False 
-
-def vsort(vs):
-    for j in range(len(vs)):
-        for i in range(len(vs)-j-1):
-            if vlv(vs[i+1], vs[i]):
-                vs[i+1], vs[i] = vs[i], vs[i+1]
-    return vs
-
-def gen_mon(mon):
-    res = Node(val=mon['coef'])
-    vs = list(mon.keys())
-    vs = vsort(vs)
-    for v in vs:
-        if v != 'coef':
-            res *= Node(name=v) ** mon[v]
+def monos2exp(M:list[monodesc]) -> Node:
+    res = mono2exp(M[0])
+    for i in range(1, len(M)):
+        res += mono2exp(M[i])
     return res
 
-def mon_sort(mons):
-    for j in range(len(mons)):
-        for i in range(len(mons)-j-1):
-            if mon_power(mons[i]) > mon_power(mons[i+1]):
-                mons[i], mons[i+1] = mons[i+1], mons[i]
-    return mons
-
-def gen_poly(mons):
-    if len(mons) == 0:
-        return Node(val=0)
+def canonize(e: Node, f: funcssign, debug=False) -> Node:
+    if debug:
+        neu, sub = e.polynomize(f)
+        for s in sub:
+            print(s, ' = ', sub[s])
     else:
-        mons = mon_sort(mons)
-        res = gen_mon(mons[0])
-        for i in range(1, len(mons)):
-            res += gen_mon(mons[i])
-        return res
+        neu = e.copy()
+    if neu.is_poly(f):
+        neu = neu.deep_opener()
+        D = descriptor_squash(neu.get_all_mono_descs())
+        monosort(D)
+        neu = monos2exp(D)
+    else:
+        print('cannot canonize')
+    return neu
 
-def normalize_poly(P):
-    P = P.balance()
-    P = P.get_mon_decs()
-    P = mon_dec_norm(P)
-    P = simplify(P)
-    return gen_poly(P)
 
 # get expression from postfix notation
-def post2node(p: list, funcs: dict, debug=False) -> Node:
-    stack = []
+def post2node(p: list[str], funcs: dict[str, tuple[int, int]]) -> Node:
+    stack:list[Node] = []
     for token in p:
         if not(token in funcs or token in binary_ops or token == 'u-'):
             if not check_num(token):
@@ -543,8 +518,8 @@ def post2node(p: list, funcs: dict, debug=False) -> Node:
                     pars, args = funcs[token][0], funcs[token][1]
                 else:
                     pars, args = 0, 2
-                operands = [None] * args
-                params = [None] * pars
+                operands = [Node()] * args
+                params = [Node()] * pars
                 for i in range(args):
                     operands[args - 1 - i] = stack.pop()
                 for i in range(pars):
@@ -564,13 +539,13 @@ def post2node(p: list, funcs: dict, debug=False) -> Node:
     return stack[0]
 
 # convert infix string to expression tree with function detection
-def s2node(inp: str, funcs=dict()) -> tuple[Node, dict]:
+def s2node(inp: str, funcs:funcssign=dict()) -> tuple[Node, funcssign]:
     pol, funcs = inf2post(inp, funcs)
     n = post2node(pol, funcs)
     return n, funcs
 
 if __name__ == "__main__":
-    e, f = s2node(inp='2.0 * a * s1 * s13 * s14 * s2 * s3 * s9')
-    e = normalize_poly(e)
+    e, f = s2node(inp='(a-5)^2 - sin[y] ^ 3  + (a+5)^2')
     print(e)
-    
+    e = canonize(e, f, True)
+    print(e)

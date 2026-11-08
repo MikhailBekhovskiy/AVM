@@ -1,9 +1,11 @@
-# class for system description; currently only DE systems are supported
-from proto_tree import *
+# class for system description;
+from tree import *
 from library import *
+from os import mkdir, listdir
+from os.path import isdir
 
 # Independent variables: comma separated values; obsolete
-def str2vars(inp: str, ind: bool) -> set:
+def str2vars(inp: str, ind: bool) -> set[str]:
     if ind:
         # set pointer after 'independent variables:'
         i = len('independent variables:')
@@ -24,7 +26,7 @@ def str2vars(inp: str, ind: bool) -> set:
 
 # str2eq and str2f return lhs varnames as well
 # dxi/dti = f(x)
-def str2eq(inp: str, funcs=dict()) -> tuple[str, str, Node, dict]:
+def str2eq(inp: str, funcs: funcssign=dict()) -> tuple[str, str, Node, funcssign]:
     i = 0
     while i < len(inp) and (inp[i] == ' ' or inp[i] == 'd'):
         i += 1
@@ -46,7 +48,7 @@ def str2eq(inp: str, funcs=dict()) -> tuple[str, str, Node, dict]:
     return main_var, sec_var, rhs[0], rhs[1]
 
 # yi = f(x)
-def str2f(inp: str, funcs=dict()) -> tuple[str, Node, dict]:
+def str2f(inp: str, funcs: funcssign=dict()) -> tuple[str, Node, funcssign]:
     i = 0
     while i < len(inp) and inp[i] == ' ':
         i += 1
@@ -61,10 +63,10 @@ def str2f(inp: str, funcs=dict()) -> tuple[str, Node, dict]:
     return mainvar, rhs[0], rhs[1]
 
 # generate mixed system by text description
-def file_scanner(filename='scrolls/input.txt') -> list:
-    with open(filename, 'r') as f:
+def file_scanner(filename:str) -> list[str]:
+    with open(f'input/{filename}', 'r') as f:
         F = f.readlines()
-    res = []
+    res:list[str] = []
     for i in range(len(F)):
         if F[i] == '' or F[i] == '\n':
             continue
@@ -80,17 +82,25 @@ class System():
     # d{depvar}/d{indvar} = eqrhs
     # {depvar} = frhs
     # add vars stores definitions of additional variables
-    def __init__(self, desc=[], filename='scrolls/input.txt'):
-        if desc == []:
+    dep_vars: set[str]
+    ind_vars: set[str]
+    add_vars: dict[str,  Node]
+    eqs: dict[str, dict[str, Node]]
+    fs: dict[str, Node]
+    funcs: funcssign
+
+
+    def __init__(self, desc: list[str]=[], filename: str=''):
+        if filename != '':
             desc = file_scanner(filename)
-        self.dep_vars = set()
-        self.ind_vars = set()
-        self.add_vars = dict()
-        self.eqs = dict()
-        # multivariate function to be analyzed
-        self.fs = dict()
+        self.dep_vars: set[str] = set()
+        self.ind_vars: set[str] = set()
+        self.add_vars: dict[str, Node] = dict()
+        self.eqs: dict[str, dict[str, Node]] = dict()
+        # multivariate functions to be analyzed
+        self.fs: dict[str, Node] = dict()
         # func names storage
-        self.funcs = dict()
+        self.funcs: funcssign = dict()
         for i in range(len(desc)):
             # equation marker
             if '/' in desc[i]:
@@ -128,11 +138,11 @@ class System():
         for mv in self.eqs:
             for sv in self.eqs[mv]:
                 res += f'd{mv}/d{sv} = ' + str(self.eqs[mv][sv]) + '\n'
-        return res[:-1]
+        return res
     
     # automatic rhs var detector
-    def var_detector(self):
-        vars = set()
+    def var_detector(self) -> set[str]:
+        vars: set[str] = set()
         for f in self.fs:
             vars = vars.union(self.fs[f].var_detector())
         for x in self.eqs:
@@ -163,7 +173,7 @@ class System():
         return neu
 
     # check whether system is polynomial
-    def is_poly(self):
+    def is_poly(self) -> bool:
         for mv in self.eqs:
             for sv in self.eqs[mv]:
                 if not self.eqs[mv][sv].is_poly(self.funcs):
@@ -174,25 +184,23 @@ class System():
         return True
 
     # add polynomial equation to the system
-    def add_eq(self, mv, sv, rhs):
+    def add_eq(self, mv: str, sv: str, rhs: Node):
         if mv not in self.dep_vars:
             self.dep_vars.add(mv)
-            self.add_vars[mv] = None
+            self.add_vars[mv] = Node()
         if sv not in self.ind_vars:
             self.ind_vars.add(sv)
         self.eqs[mv][sv] = rhs
-        return self
 
     # add polynomial function to the system
     def add_f(self, mv, rhs):
         if mv not in self.dep_vars:
             self.dep_vars.add(mv)
-            self.add_vars[mv]=None
+            self.add_vars[mv]=Node()
         self.fs[mv] = rhs
-        return self
     
     # system wide dependent variable change;
-    def change_dep_var_name(self, old_var, new_var):
+    def change_dep_var_name(self, old_var, new_var) -> "System":
         neu = self.copy()
         neu.eqs[new_var] = dict()
         for mv in neu.eqs:
@@ -214,11 +222,11 @@ class System():
         neu.dep_vars.add(new_var)
         if old_var in self.add_vars:
             del neu.add_vars[old_var]
-            neu.add_vars[new_var]=None
+            neu.add_vars[new_var]=Node()
         return neu
 
     # change set is a DICTIONARY
-    def bulk_change_dep_var_name(self, vars: dict):
+    def bulk_change_dep_var_name(self, vars: dict[str, str]) -> "System":
         neu = self.copy()
         for v in vars:
             neu = neu.change_dep_var_name(v, vars[v])
@@ -226,7 +234,7 @@ class System():
 
     # systemwide substitution; returns NEW instance; doesnt update variables
     # var update explicitly handled on av insertion step
-    def substitute(self, old_exp, new_exp):
+    def substitute(self, old_exp: Node, new_exp: Node) -> "System":
         neu = self.copy()
         for mv in neu.eqs:
             for sv in neu.eqs[mv]:
@@ -239,7 +247,7 @@ class System():
         return neu
 
     # get right hand side with functions in it
-    def get_non_poly_rhs(self):
+    def get_non_poly_rhs(self) -> Node:
         for mv in self.eqs:
             for sv in self.eqs[mv]:
                 if not self.eqs[mv][sv].is_poly(self.funcs):
@@ -247,20 +255,20 @@ class System():
         for mv in self.fs:
             if not self.fs[mv].is_poly(self.funcs):
                 return self.fs[mv]
-        return None
+        return Node()
 
     # introduce and insert additional variables to polynomize systems
     # parametre insertion not supported yet
-    def insert_av(self, loaded_lib):
+    def insert_av(self, loaded_lib: lib) -> tuple["System", list[tuple[dict[str, Node], list[Node], int, list[Node]]]]:
         S = self.copy()
         L = loaded_lib
-        replaced = []
+        replaced: list[tuple[dict[str, Node], list[Node], int, list[Node]]] = []
         while not S.is_poly():
             E = S.get_non_poly_rhs()
             cand = [E.find_poly_funcs(S.funcs)[0]]
             ext = L[0][cand[0].name][2]
             syst = L[0][cand[0].name][0]
-            cand += [None] * len(ext)
+            cand += [Node()] * len(ext)
             for i in range(len(ext)):
                 cand[i+1] = cand[0].copy()
                 cand[i+1].name = ext[i]
@@ -273,19 +281,19 @@ class System():
         return S, replaced
 
     # calculate single additional variable extension derivatives
-    def ext_ders(self, ext: tuple, loaded_lib):
+    def ext_ders(self, ext: tuple[dict[str, Node],list[Node],int, list[Node]], loaded_lib: lib):
         LS = System(desc = loaded_lib[1][ext[2]])
         E = ext[0]
         A = ext[1]
-        arg_ders = []
+        arg_ders: list[dict[str, Node]] = []
         i = 0
         for a in A:
             arg_ders.append(dict())
             for t in S.ind_vars:
                 arg_ders[i][t] = a.poly_derivative(t, self.eqs)
             i += 1
-        exps_old = []
-        exps_new = []
+        exps_old:list[Node] = []
+        exps_new: list[Node] = []
         i = 0
         for av in E:
             exps_new.append(Node(name=av))
@@ -310,40 +318,43 @@ class System():
                     self.eqs[avname][t] += LS.eqs[exps_old[i].name][exps_old[j].name].bulk_substitute(exps_old, exps_new) * arg_ders[j - len(E)][t]    
 
     # calculate all additional variable derivatives
-    def av_ders(self, avs: list, loaded_lib):
+    def av_ders(self, avs: list[tuple[dict[str, Node],list[Node],int, list[Node]]], loaded_lib: lib):
         for ext in avs:
             S.ext_ders(ext, loaded_lib)
 
-    # system-wide parentheses opener
-    def open_parenth(self):
-        for x in self.eqs:
-           for t in self.eqs[x]:
-              self.eqs[x][t] = normalize_poly(self.eqs[x][t])
-        for f in self.fs:
-           self.fs[f] = normalize_poly(self.fs[f])
 
 # generate system from library descriptor
-def load_lib_systems(lib):
-    res = []
+def load_lib_systems(lib:lib) -> list[System]:
+    res: list[System] = []
     for i in range(len(lib[1])):
         res.append(System(desc=lib[1][i]))
     return res
 
-def print_av(replaced: tuple):
+def print_av(replaced: tuple[dict[str, Node], int]):
     for v in replaced[0]:
         print(v, ' = ', replaced[0][v], '; system number ', replaced[1])
 
-def print_avs(replaced: list):
+def print_avs(replaced: list[tuple[dict[str, Node], int]]):
     print('Additional variables definition:')
     for i in range(len(replaced)):
         print(f'Extension #{i}:')
         print_av(replaced[i])
 
 if __name__ == "__main__":
-    S = System(filename='scrolls/input_big.txt')
-    S, R = S.insert_av(lib_na)
-    # print(R)
-    S.av_ders(R, lib_na)
-    S.open_parenth()
-    print(S)
+    fnames = [fn[:-4] for fn in listdir('input/')]
+    print('Found ', len(fnames), ' files in input directory.')
+    for fname in fnames:
+        if not isdir(f'output/{fname}'):
+            mkdir(f'output/{fname}')
+        with open(f'output/{fname}/main.tex', 'w') as f:
+            print('Trying ', fname)
+            S = System(filename=fname + '.txt')
+            f.write('Input system:\n')
+            f.write(S.__str__())
+            S, R = S.insert_av(lib_na)
+            # print(R)
+            S.av_ders(R, lib_na)
+            f.write('=================\nResult:\n')
+            f.write(S.__str__())
+        print(fname, ' has been processed.')
 
