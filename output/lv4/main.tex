@@ -9,12 +9,12 @@ dx/dt = a * x * (x - L) * (K - x) * inv[(N + x) * K]
 =================
 Result:
 Dependent variables:
-{'s1', 'x'}
+{'x', 's1'}
 Independent variables:
 {'t'}
 Additional variables:
 s1: inv[(N + x) * K]
 Detected functions:
 {'inv': (0, 1)}
-dx/dt = a * x * (x - L) * (K - x) * s1
-ds1/dt = s1 ^ 2.0 * a * x * (x - L) * (K - x) * s1 * K
+dx/dt = s1 * K * a * x ^ 2.0 + -1.0 * s1 * K * a * x * L + -1.0 * s1 * x ^ 3.0 * a + s1 * x ^ 2.0 * a * L
+ds1/dt = -1.0 * s1 ^ 3.0 * K ^ 2.0 * a * x ^ 2.0 + s1 ^ 3.0 * K ^ 2.0 * a * x * L + s1 ^ 3.0 * K * x ^ 3.0 * a + -1.0 * s1 ^ 3.0 * K * x ^ 2.0 * a * L

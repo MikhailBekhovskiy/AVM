@@ -322,6 +322,13 @@ class System():
         for ext in avs:
             S.ext_ders(ext, loaded_lib)
 
+    def canonize(self):
+        for f in self.fs:
+            self.fs[f] = canonize(self.fs[f], self.funcs)
+        for mv in self.eqs:
+            for sv in self.eqs[mv]:
+                self.eqs[mv][sv] = canonize(self.eqs[mv][sv], self.funcs)
+
 
 # generate system from library descriptor
 def load_lib_systems(lib:lib) -> list[System]:
@@ -354,6 +361,7 @@ if __name__ == "__main__":
             S, R = S.insert_av(lib_na)
             # print(R)
             S.av_ders(R, lib_na)
+            S.canonize()
             f.write('=================\nResult:\n')
             f.write(S.__str__())
         print(fname, ' has been processed.')

@@ -1,22 +1,22 @@
 Input system:
 Dependent variables:
-{'y', 'x'}
+{'x', 'y'}
 Independent variables:
 {'t'}
 Detected functions:
 {'inv': (0, 1)}
 dx/dt = a * x - b * x * y * inv[(1.0 + A * x) * (1.0 + B * y)]
-dy/dt = -c * y + d * x * y * inv[(1.0 + A * x) * (1.0 + B * y)]
+dy/dt = -1.0 * c * y + d * x * y * inv[(1.0 + A * x) * (1.0 + B * y)]
 =================
 Result:
 Dependent variables:
-{'s1', 'y', 'x'}
+{'x', 'y', 's1'}
 Independent variables:
 {'t'}
 Additional variables:
 s1: inv[(1.0 + A * x) * (1.0 + B * y)]
 Detected functions:
 {'inv': (0, 1)}
-dx/dt = a * x - b * x * y * s1
-dy/dt = -c * y + d * x * y * s1
-ds1/dt = s1 ^ 2.0 * ((a * x - b * x * y * s1) * A * (1.0 + B * y) + (-c * y + d * x * y * s1) * B * (1.0 + A * x))
+dx/dt = -1.0 * b * x * y * s1 + a * x
+dy/dt = d * x * y * s1 + -1.0 * c * y
+ds1/dt = s1 ^ 3.0 * B * y ^ 2.0 * A * b * x + -1.0 * s1 ^ 3.0 * A * x ^ 2.0 * B * d * y + s1 ^ 3.0 * A * b * x * y + -1.0 * s1 ^ 2.0 * B * y * A * a * x + -1.0 * s1 ^ 3.0 * B * d * x * y + s1 ^ 2.0 * A * x * B * c * y + -1.0 * s1 ^ 2.0 * A * a * x + s1 ^ 2.0 * B * c * y

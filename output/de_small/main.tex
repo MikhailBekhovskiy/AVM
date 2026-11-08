@@ -2,7 +2,7 @@ Input system:
 Dependent variables:
 {'x1'}
 Independent variables:
-{'t2', 't3', 't1'}
+{'t1', 't3', 't2'}
 Detected functions:
 {'sin': (0, 1)}
 dx1/dt1 = x1 * sin[x1]
@@ -11,9 +11,9 @@ dx1/dt3 = 5.0
 =================
 Result:
 Dependent variables:
-{'s1', 's2', 'x1'}
+{'x1', 's1', 's2'}
 Independent variables:
-{'t2', 't3', 't1'}
+{'t1', 't3', 't2'}
 Additional variables:
 s1: sin[x1]
 s2: cos[x1]
@@ -22,9 +22,9 @@ Detected functions:
 dx1/dt1 = x1 * s1
 dx1/dt2 = x1
 dx1/dt3 = 5.0
-ds1/dt2 = s2 * x1
-ds1/dt3 = s2 * 5.0
 ds1/dt1 = s2 * x1 * s1
-ds2/dt2 = (-s1) * x1
-ds2/dt3 = (-s1) * 5.0
-ds2/dt1 = (-s1) * x1 * s1
+ds1/dt3 = 5.0 * s2
+ds1/dt2 = s2 * x1
+ds2/dt1 = -1.0 * s1 ^ 2.0 * x1
+ds2/dt3 = -5.0 * s1
+ds2/dt2 = -1.0 * s1 * x1

@@ -64,7 +64,7 @@ def desc_copy(L:monodesc) -> monodesc:
 
 def descriptor_squash(M: list[monodesc]) -> list[monodesc]:
     res: list[monodesc] = []
-    for i in range(len(M)-1):
+    for i in range(len(M)):
         r = {'coef': 0.}
         if 'checked' not in M[i]:
             r = desc_copy(M[i])
@@ -478,10 +478,12 @@ def mono2exp(m: monodesc) -> Node:
     return res
 
 def monos2exp(M:list[monodesc]) -> Node:
-    res = mono2exp(M[0])
-    for i in range(1, len(M)):
-        res += mono2exp(M[i])
-    return res
+    if len(M) > 0:
+        res = mono2exp(M[0])
+        for i in range(1, len(M)):
+            res += mono2exp(M[i])
+        return res
+    return Node()
 
 def canonize(e: Node, f: funcssign, debug=False) -> Node:
     if debug:
@@ -492,7 +494,8 @@ def canonize(e: Node, f: funcssign, debug=False) -> Node:
         neu = e.copy()
     if neu.is_poly(f):
         neu = neu.deep_opener()
-        D = descriptor_squash(neu.get_all_mono_descs())
+        D = neu.get_all_mono_descs()
+        D = descriptor_squash(D)
         monosort(D)
         neu = monos2exp(D)
     else:
@@ -545,7 +548,7 @@ def s2node(inp: str, funcs:funcssign=dict()) -> tuple[Node, funcssign]:
     return n, funcs
 
 if __name__ == "__main__":
-    e, f = s2node(inp='(a-5)^2 - sin[y] ^ 3  + (a+5)^2')
+    e, f = s2node(inp='x')
     print(e)
     e = canonize(e, f, True)
     print(e)

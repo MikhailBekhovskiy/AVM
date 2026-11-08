@@ -1,6 +1,6 @@
 Input system:
 Dependent variables:
-{'g2', 'p2', 'p1', 'g3', 'g1', 'p3'}
+{'p2', 'g1', 'p3', 'g3', 'p1', 'g2'}
 Independent variables:
 {'t'}
 Detected functions:
@@ -8,13 +8,13 @@ Detected functions:
 dg1/dt = p1
 dg2/dt = p2
 dg3/dt = p3
-dp1/dt = -k ^ 2.0 * (m0 + m1) * g1 * isqrt[g1 ^ 2.0 + g2 ^ 2.0 + g3 ^ 2.0] ^ 3.0
-dp2/dt = -k ^ 2.0 * (m0 + m1) * g2 * isqrt[g1 ^ 2.0 + g2 ^ 2.0 + g3 ^ 2.0] ^ 3.0
-dp3/dt = -k ^ 2.0 * (m0 + m1) * g3 * isqrt[g1 ^ 2.0 + g2 ^ 2.0 + g3 ^ 2.0] ^ 3.0
+dp1/dt = -1.0 * k ^ 2.0 * (m0 + m1) * g1 * isqrt[g1 ^ 2.0 + g2 ^ 2.0 + g3 ^ 2.0] ^ 3.0
+dp2/dt = -1.0 * k ^ 2.0 * (m0 + m1) * g2 * isqrt[g1 ^ 2.0 + g2 ^ 2.0 + g3 ^ 2.0] ^ 3.0
+dp3/dt = -1.0 * k ^ 2.0 * (m0 + m1) * g3 * isqrt[g1 ^ 2.0 + g2 ^ 2.0 + g3 ^ 2.0] ^ 3.0
 =================
 Result:
 Dependent variables:
-{'g2', 's1', 'p2', 'g1', 'p3', 'p1', 'g3'}
+{'g3', 'p1', 's1', 'p2', 'g1', 'g2', 'p3'}
 Independent variables:
 {'t'}
 Additional variables:
@@ -24,7 +24,7 @@ Detected functions:
 dg1/dt = p1
 dg2/dt = p2
 dg3/dt = p3
-dp1/dt = -k ^ 2.0 * (m0 + m1) * g1 * s1 ^ 3.0
-dp2/dt = -k ^ 2.0 * (m0 + m1) * g2 * s1 ^ 3.0
-dp3/dt = -k ^ 2.0 * (m0 + m1) * g3 * s1 ^ 3.0
-ds1/dt = (-0.5 * s1 ^ 3.0) * (2.0 * g1 * p1 + 2.0 * g2 * p2 + 2.0 * g3 * p3)
+dp1/dt = -1.0 * s1 ^ 3.0 * g1 * k ^ 2.0 * m0 + -1.0 * s1 ^ 3.0 * g1 * k ^ 2.0 * m1
+dp2/dt = -1.0 * s1 ^ 3.0 * g2 * k ^ 2.0 * m0 + -1.0 * s1 ^ 3.0 * g2 * k ^ 2.0 * m1
+dp3/dt = -1.0 * s1 ^ 3.0 * g3 * k ^ 2.0 * m0 + -1.0 * s1 ^ 3.0 * g3 * k ^ 2.0 * m1
+ds1/dt = -1.0 * s1 ^ 3.0 * g1 * p1 + -1.0 * s1 ^ 3.0 * g2 * p2 + -1.0 * s1 ^ 3.0 * g3 * p3

@@ -6,17 +6,17 @@ Independent variables:
 Detected functions:
 {'inv': (0, 1)}
 dx1/dt = a * x1 ^ 2.0 * inv[N + x1] - b * x1 * x2
-dx2/dt = -c * x2 + d * x1 * x2
+dx2/dt = -1.0 * c * x2 + d * x1 * x2
 =================
 Result:
 Dependent variables:
-{'s1', 'x2', 'x1'}
+{'x2', 'x1', 's1'}
 Independent variables:
 {'t'}
 Additional variables:
 s1: inv[N + x1]
 Detected functions:
 {'inv': (0, 1)}
-dx1/dt = a * x1 ^ 2.0 * s1 - b * x1 * x2
-dx2/dt = -c * x2 + d * x1 * x2
-ds1/dt = s1 ^ 2.0 * (a * x1 ^ 2.0 * s1 - b * x1 * x2)
+dx1/dt = a * x1 ^ 2.0 * s1 + -1.0 * b * x1 * x2
+dx2/dt = d * x1 * x2 + -1.0 * c * x2
+ds1/dt = -1.0 * s1 ^ 3.0 * a * x1 ^ 2.0 + s1 ^ 2.0 * b * x1 * x2

@@ -9,7 +9,7 @@ dx/dt = b * x ^ 2.0 * inv[N + x]
 =================
 Result:
 Dependent variables:
-{'s1', 'x'}
+{'x', 's1'}
 Independent variables:
 {'t'}
 Additional variables:
@@ -17,4 +17,4 @@ s1: inv[N + x]
 Detected functions:
 {'inv': (0, 1)}
 dx/dt = b * x ^ 2.0 * s1
-ds1/dt = s1 ^ 2.0 * b * x ^ 2.0 * s1
+ds1/dt = -1.0 * s1 ^ 3.0 * b * x ^ 2.0
