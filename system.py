@@ -3,6 +3,19 @@ from tree import *
 from library import *
 from os import mkdir, listdir
 from os.path import isdir
+import subprocess
+
+PATH = '/home/sleepydragon/Desktop/AVM'
+PREAMBLE = '''\\documentclass[10pt,a4paper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[russian]{babel}
+\\usepackage[OT1]{fontenc}
+\\usepackage{amsmath}
+\\usepackage{amsfonts}
+\\usepackage{amssymb}
+\\usepackage{graphicx}
+\\begin{document}\n'''
+FIN = '\\end{document}'
 
 # Independent variables: comma separated values; obsolete
 def str2vars(inp: str, ind: bool) -> set[str]:
@@ -124,20 +137,56 @@ class System():
                 if v not in self.dep_vars and v not in self.ind_vars:
                     self.ind_vars.add(v)
 
-    def __str__(self):
-        res = 'Dependent variables:\n' + str(self.dep_vars) + '\n'
-        res += 'Independent variables:\n' + str(self.ind_vars) + '\n'
+    def __str__(self, latex=False):
+        if not latex:
+            dvs = str(self.dep_vars)
+        else:
+            dvs = ''
+            for dv in self.dep_vars:
+                dvs += var_name2latex(dv) + ', '
+            dvs = dvs[:-2]
+        res = 'Dependent variables:$' + dvs + '$\n\n'
+        if not latex:
+            ivs = str(self.ind_vars)
+        else:
+            ivs = ''
+            for iv in self.ind_vars:
+                ivs += var_name2latex(iv) + ', '
+            ivs = ivs[:-2]
+        res += 'Independent variables:$' + ivs + '$\n\n'
         if len(self.add_vars) > 0:
             res += 'Additional variables:\n'
             for av in self.add_vars:
-                res += f'{av}: {str(self.add_vars[av])}\n'
-        if len(self.funcs) > 0:
-            res += 'Detected functions:\n' + str(self.funcs) + '\n'
+                if latex:
+                    adv = '\\begin{equation*}' + var_name2latex(av)
+                else:
+                    adv = av
+                res += f'{adv} = {self.add_vars[av].__str__(latex)}'
+                if latex:
+                    res += '\\end{equation*}'
+                res += '\n'
         for mv in self.fs:
-            res += f'{mv} = ' + str(self.fs[mv]) + '\n'
+            if not latex:
+                lhs = mv
+            else:
+                lhs = '\\begin{equation*}' + var_name2latex(mv)
+            res += f'{lhs} = ' + self.fs[mv].__str__(latex)
+            if latex:
+                res += '\\end{equation*}'
+            res += '\n'
         for mv in self.eqs:
             for sv in self.eqs[mv]:
-                res += f'd{mv}/d{sv} = ' + str(self.eqs[mv][sv]) + '\n'
+                if not latex:
+                    lhs = f'd{mv}/d{sv}'
+                else:
+                    if len(self.ind_vars) == 1:
+                        lhs = '\\begin{equation*}\\frac{d' + var_name2latex(mv)+'}{d' + var_name2latex(sv) + '}'
+                    else:
+                        lhs = '\\begin{equation*}\\frac{\\partial ' + var_name2latex(mv)+'}{\\partial ' + var_name2latex(sv) + '}'
+                res += f'{lhs} = ' + self.eqs[mv][sv].__str__(latex)
+                if latex:
+                    res += '\\end{equation*}'
+                res += '\n'
         return res
     
     # automatic rhs var detector
@@ -353,16 +402,19 @@ if __name__ == "__main__":
     for fname in fnames:
         if not isdir(f'output/{fname}'):
             mkdir(f'output/{fname}')
+        OUTPATH = PATH + '/output/' + fname
         with open(f'output/{fname}/main.tex', 'w') as f:
             print('Trying ', fname)
             S = System(filename=fname + '.txt')
-            f.write('Input system:\n')
-            f.write(S.__str__())
+            f.write(PREAMBLE)
+            f.write('Input system:\n\n')
+            f.write(S.__str__(latex=True))
             S, R = S.insert_av(lib_na)
             # print(R)
             S.av_ders(R, lib_na)
             S.canonize()
-            f.write('=================\nResult:\n')
-            f.write(S.__str__())
+            f.write('=================\n\nResult:\n\n')
+            f.write(S.__str__(latex=True))
+            f.write(FIN)
+        subprocess.run(f'pdflatex -output-directory={OUTPATH}  -synctex=1 -interaction=nonstopmode {OUTPATH}/main.tex', shell=True, executable="/bin/bash")
         print(fname, ' has been processed.')
-

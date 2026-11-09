@@ -1,30 +1,39 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage[OT1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\begin{document}
 Input system:
-Dependent variables:
-{'x1'}
-Independent variables:
-{'t1', 't3', 't2'}
-Detected functions:
-{'sin': (0, 1)}
-dx1/dt1 = x1 * sin[x1]
-dx1/dt2 = x1
-dx1/dt3 = 5.0
+
+Dependent variables:$x_{1}$
+
+Independent variables:$t_{1}, t_{3}, t_{2}$
+
+\begin{equation*}\frac{\partial x_{1}}{\partial t_{1}} = x_{1}  \text{sin}(x_{1})\end{equation*}
+\begin{equation*}\frac{\partial x_{1}}{\partial t_{2}} = x_{1}\end{equation*}
+\begin{equation*}\frac{\partial x_{1}}{\partial t_{3}} = 5\end{equation*}
 =================
+
 Result:
-Dependent variables:
-{'x1', 's1', 's2'}
-Independent variables:
-{'t1', 't3', 't2'}
+
+Dependent variables:$s_{2}, x_{1}, s_{1}$
+
+Independent variables:$t_{1}, t_{3}, t_{2}$
+
 Additional variables:
-s1: sin[x1]
-s2: cos[x1]
-Detected functions:
-{'sin': (0, 1)}
-dx1/dt1 = x1 * s1
-dx1/dt2 = x1
-dx1/dt3 = 5.0
-ds1/dt1 = s2 * x1 * s1
-ds1/dt3 = 5.0 * s2
-ds1/dt2 = s2 * x1
-ds2/dt1 = -1.0 * s1 ^ 2.0 * x1
-ds2/dt3 = -5.0 * s1
-ds2/dt2 = -1.0 * s1 * x1
+\begin{equation*}s_{1} = \text{sin}(x_{1})\end{equation*}
+\begin{equation*}s_{2} = \text{cos}(x_{1})\end{equation*}
+\begin{equation*}\frac{\partial x_{1}}{\partial t_{1}} = x_{1}  s_{1}\end{equation*}
+\begin{equation*}\frac{\partial x_{1}}{\partial t_{2}} = x_{1}\end{equation*}
+\begin{equation*}\frac{\partial x_{1}}{\partial t_{3}} = 5\end{equation*}
+\begin{equation*}\frac{\partial s_{1}}{\partial t_{1}} = s_{2}  x_{1}  s_{1}\end{equation*}
+\begin{equation*}\frac{\partial s_{1}}{\partial t_{3}} = 5  s_{2}\end{equation*}
+\begin{equation*}\frac{\partial s_{1}}{\partial t_{2}} = s_{2}  x_{1}\end{equation*}
+\begin{equation*}\frac{\partial s_{2}}{\partial t_{1}} = (-1)  s_{1} ^ {2}  x_{1}\end{equation*}
+\begin{equation*}\frac{\partial s_{2}}{\partial t_{3}} = (-5)  s_{1}\end{equation*}
+\begin{equation*}\frac{\partial s_{2}}{\partial t_{2}} = (-1)  s_{1}  x_{1}\end{equation*}
+\end{document}

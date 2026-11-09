@@ -7,6 +7,12 @@
 from parse import *
 type monodesc = dict[str, float]
 
+def var_name2latex(v: str) -> str:
+    res = v[0]
+    if len(v) > 1:
+        res += '_{' + v[1:] + '}'
+    return res
+
 def factorial(n: int) -> int:
     if n >= 0:
         if n == 0 or n == 1:
@@ -113,19 +119,36 @@ class Node():
 
     def __str__(self, latex=False):
         if self.name == 'num':
-            return str(self.value)
+            n = self.value
+            if n - float(int(n)) > 0.:
+                res =  str(self.value)
+            else:
+                res = str(int(n))
+            if n < 0:
+                res = '(' + res + ')'
+            return res
         elif len(self.kids) == 0:
-            return self.name
+            if not latex:
+                name = self.name
+            else:
+                name = var_name2latex(self.name)
+            return name
         elif self.name in binary_ops and len(self.kids) == 2:
-            l = self.kids[0].__str__()
+            l = self.kids[0].__str__(latex)
             if type(self.kids[0]) is Node and self.kids[0].name in priorities and priorities[self.name] > priorities[self.kids[0].name]:
                 l = '(' + l + ')'
-            r = self.kids[1].__str__()
+            r = self.kids[1].__str__(latex)
             if type(self.kids[1]) is Node and self.kids[1].name in priorities and (priorities[self.name] > priorities[self.kids[1].name] or (self.name == '-' and priorities[self.name] >= priorities[self.kids[1].name]) or self.kids[1].name == 'u-'):
                 r = '(' + r + ')'
-            return l + ' ' + self.name + ' ' + r
+            if self.name == '^' and self.kids[1].name == 'num' and latex:
+                r = '{' + r + '}'
+            if self.name == '*' and latex:
+                name = ''
+            else:
+                name = self.name
+            return l + ' ' + name + ' ' + r
         elif self.name in unary_ops and len(self.kids) == 1:
-            s = self.kids[0].__str__()
+            s = self.kids[0].__str__(latex)
             if self.name == 'u-':
                 nam = '-'
             else:
@@ -134,15 +157,23 @@ class Node():
                 s = '(' + s + ')'
             return nam + s
         else:
-            res = self.name + '['
+            if latex:
+                parl = '('
+                parr = ')'
+                name = '\\text{' + self.name + '}'
+            else:
+                parl = '['
+                parr = ']'
+                name = self.name
+            res = name + parl
             if self.parameters != []:
                 for p in self.parameters:
-                    res += p.__str__() + ', '
+                    res += p.__str__(latex) + ', '
                 res = res[:-2] + '; '
             for k in self.kids:
-                res += k.__str__() + ', '
+                res += k.__str__(latex) + ', '
             res = res[:len(res)-2]
-            return res + ']'
+            return res + parr
         
     def __eq__(self, b):
         if self.name != b.name or len(self.kids) != len(b.kids):

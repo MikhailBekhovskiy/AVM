@@ -1,124 +1,133 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage[OT1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\begin{document}
 Input system:
-Dependent variables:
-{'y1', 'y4', 'y6', 'y2', 'y3', 'y5'}
-Independent variables:
-{'x1', 'x2', 'b', 'x3', 'a'}
-Detected functions:
-{'sin': (0, 1), 'cos': (0, 1), 'ln': (0, 1), 'Dv': (3, 1), 'EK': (0, 2), 'ch': (0, 1), 'sh': (0, 1)}
-y1 = x3 ^ 3.0 * sin[cos[a * ln[x2] ^ 2.0 + b * x3]] + x3 ^ 3.0 * b * ln[x2] ^ 4.0 + sin[a * ln[x2] ^ 2.0 + b * x3] ^ 5.0 + Dv[g ^ 2.0, 1.0, -1.0; x1]
-y2 = sin[cos[a * ln[x2] ^ 2.0 + b * x3]] + b * ln[x2] ^ 4.0 + sin[a * ln[x2] ^ 2.0 + b * x3] ^ 5.0 + Dv[g ^ 2.0, 1.0, -1.0; x1]
-y3 = x2 ^ 2.0 * cos[sin[a * ln[x2] ^ 2.0 + b * x3]] + cos[a * ln[x2] ^ 2.0 + b * x3] ^ 4.0 + EK[sin[sin[a * ln[x2] ^ 2.0 + b * x3]], x1] ^ 2.0
-y4 = x2 ^ 2.0 * cos[sin[a * ln[x2] ^ 2.0 + b * x3]] + cos[a * ln[x2] ^ 2.0 + b * x3] ^ 4.0 + EK[sin[sin[a * ln[x2] ^ 2.0 + b * x3]], x1]
-y5 = x1 ^ 2.0 * ch[a * ln[x2] ^ 2.0 + b * x3] ^ 2.0 + x1 ^ 2.0 * sin[a * ln[x2] ^ 2.0 + b * x3] + sh[a * ln[x2] ^ 2.0 + b * x3] ^ 5.0
-y6 = x1 * ch[a * ln[x2] ^ 2.0 + b * x3] ^ 2.0 + x1 * sin[a * ln[x2] ^ 2.0 + b * x3] + sh[a * ln[x2] ^ 2.0 + b * x3] ^ 5.0
+
+Dependent variables:$y_{3}, y_{2}, y_{4}, y_{6}, y_{1}, y_{5}$
+
+Independent variables:$x_{3}, a, b, x_{1}, x_{2}$
+
+\begin{equation*}y_{1} = x_{3} ^ {3}  \text{sin}(\text{cos}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3})) + x_{3} ^ {3}  b  \text{ln}(x_{2}) ^ {4} + \text{sin}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) ^ {5} + \text{Dv}(g ^ {2}, 1, (-1); x_{1})\end{equation*}
+\begin{equation*}y_{2} = \text{sin}(\text{cos}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3})) + b  \text{ln}(x_{2}) ^ {4} + \text{sin}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) ^ {5} + \text{Dv}(g ^ {2}, 1, (-1); x_{1})\end{equation*}
+\begin{equation*}y_{3} = x_{2} ^ {2}  \text{cos}(\text{sin}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3})) + \text{cos}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) ^ {4} + \text{EK}(\text{sin}(\text{sin}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3})), x_{1}) ^ {2}\end{equation*}
+\begin{equation*}y_{4} = x_{2} ^ {2}  \text{cos}(\text{sin}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3})) + \text{cos}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) ^ {4} + \text{EK}(\text{sin}(\text{sin}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3})), x_{1})\end{equation*}
+\begin{equation*}y_{5} = x_{1} ^ {2}  \text{ch}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) ^ {2} + x_{1} ^ {2}  \text{sin}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) + \text{sh}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) ^ {5}\end{equation*}
+\begin{equation*}y_{6} = x_{1}  \text{ch}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) ^ {2} + x_{1}  \text{sin}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) + \text{sh}(a  \text{ln}(x_{2}) ^ {2} + b  x_{3}) ^ {5}\end{equation*}
 =================
+
 Result:
-Dependent variables:
-{'y1', 'y6', 's1', 's6', 'y2', 's15', 's2', 's7', 's13', 's16', 's8', 'y4', 's4', 's11', 's10', 's12', 's5', 's9', 'y3', 's3', 's14', 'y5'}
-Independent variables:
-{'x1', 'x2', 'b', 'x3', 'a'}
+
+Dependent variables:$s_{9}, s_{15}, s_{14}, s_{10}, y_{4}, s_{6}, s_{12}, s_{13}, y_{1}, s_{5}, s_{4}, s_{16}, y_{5}, s_{11}, y_{2}, y_{6}, s_{7}, s_{1}, s_{2}, s_{8}, y_{3}, s_{3}$
+
+Independent variables:$b, x_{3}, x_{2}, x_{1}, a$
+
 Additional variables:
-s1: ln[x2]
-s2: inv[x2]
-s3: cos[a * s1 ^ 2.0 + b * x3]
-s4: sin[a * s1 ^ 2.0 + b * x3]
-s5: sin[s3]
-s6: cos[s3]
-s7: Dv[g ^ 2.0, 1.0, -1.0; x1]
-s8: DV[g ^ 2.0, 1.0, -1.0; x1]
-s9: cos[s4]
-s10: sin[s4]
-s11: EK[s10, x1]
-s12: EKs[s10, x1]
-s13: EKc[s10, x1]
-s14: EKi[s10, x1]
-s15: ch[a * s1 ^ 2.0 + b * x3]
-s16: sh[a * s1 ^ 2.0 + b * x3]
-Detected functions:
-{'sin': (0, 1), 'cos': (0, 1), 'ln': (0, 1), 'Dv': (3, 1), 'EK': (0, 2), 'ch': (0, 1), 'sh': (0, 1)}
-y1 = x3 ^ 3.0 * b * s1 ^ 4.0 + s4 ^ 5.0 + x3 ^ 3.0 * s5 + s7
-y2 = b * s1 ^ 4.0 + s4 ^ 5.0 + s5 + s7
-y3 = s3 ^ 4.0 + x2 ^ 2.0 * s9 + s11 ^ 2.0
-y4 = s3 ^ 4.0 + x2 ^ 2.0 * s9 + s11
-y5 = s16 ^ 5.0 + x1 ^ 2.0 * s15 ^ 2.0 + x1 ^ 2.0 * s4
-y6 = s16 ^ 5.0 + x1 * s15 ^ 2.0 + x1 * s4
-ds1/dx1 = 0.0
-ds1/dx2 = s2
-ds1/db = 0.0
-ds1/dx3 = 0.0
-ds1/da = 0.0
-ds2/dx1 = 0.0
-ds2/dx2 = -1.0 * s2 ^ 2.0
-ds2/db = 0.0
-ds2/dx3 = 0.0
-ds2/da = 0.0
-ds3/dx1 = 0.0
-ds3/dx2 = -2.0 * s4 * s1 * s2 * a
-ds3/db = -1.0 * s4 * x3
-ds3/dx3 = -1.0 * s4 * b
-ds3/da = -1.0 * s4 * s1 ^ 2.0
-ds4/dx1 = 0.0
-ds4/dx2 = 2.0 * s3 * s1 * s2 * a
-ds4/db = s3 * x3
-ds4/dx3 = s3 * b
-ds4/da = s3 * s1 ^ 2.0
-ds5/dx1 = 0.0
-ds5/dx2 = -2.0 * s6 * s4 * s1 * s2 * a
-ds5/db = -1.0 * s6 * s4 * x3
-ds5/dx3 = -1.0 * s6 * s4 * b
-ds5/da = -1.0 * s6 * s4 * s1 ^ 2.0
-ds6/dx1 = 0.0
-ds6/dx2 = 2.0 * s5 * s4 * s1 * s2 * a
-ds6/db = s5 * s4 * x3
-ds6/dx3 = s5 * s4 * b
-ds6/da = s5 * s4 * s1 ^ 2.0
-ds7/dx1 = s8
-ds7/dx2 = 0.0
-ds7/db = 0.0
-ds7/dx3 = 0.0
-ds7/da = 0.0
-ds8/dx1 = -1.0 * s7 * p1 * x1 ^ 2.0 + -1.0 * s7 * p2 * x1 + -1.0 * s7 * p3
-ds8/dx2 = 0.0
-ds8/db = 0.0
-ds8/dx3 = 0.0
-ds8/da = 0.0
-ds9/dx1 = 0.0
-ds9/dx2 = -2.0 * s10 * s3 * s1 * s2 * a
-ds9/db = -1.0 * s10 * s3 * x3
-ds9/dx3 = -1.0 * s10 * s3 * b
-ds9/da = -1.0 * s10 * s3 * s1 ^ 2.0
-ds10/dx1 = 0.0
-ds10/dx2 = 2.0 * s9 * s3 * s1 * s2 * a
-ds10/db = s9 * s3 * x3
-ds10/dx3 = s9 * s3 * b
-ds10/da = s9 * s3 * s1 ^ 2.0
-ds11/dx1 = s14
-ds11/dx2 = 2.0 * s12 * s14 * s9 * s3 * s1 * s2 * a
-ds11/db = s12 * s14 * s9 * s3 * x3
-ds11/dx3 = s12 * s14 * s9 * s3 * b
-ds11/da = s12 * s14 * s9 * s3 * s1 ^ 2.0
-ds12/dx1 = s13 * s14
-ds12/dx2 = 2.0 * s12 * s13 * s14 * s9 * s3 * s1 * s2 * a
-ds12/db = s12 * s13 * s14 * s9 * s3 * x3
-ds12/dx3 = s12 * s13 * s14 * s9 * s3 * b
-ds12/da = s12 * s13 * s14 * s9 * s3 * s1 ^ 2.0
-ds13/dx1 = -1.0 * s12 * s14
-ds13/dx2 = -2.0 * s12 ^ 2.0 * s14 * s9 * s3 * s1 * s2 * a
-ds13/db = -1.0 * s12 ^ 2.0 * s14 * s9 * s3 * x3
-ds13/dx3 = -1.0 * s12 ^ 2.0 * s14 * s9 * s3 * b
-ds13/da = -1.0 * s12 ^ 2.0 * s14 * s9 * s3 * s1 ^ 2.0
-ds14/dx1 = -1.0 * s10 * s14 ^ 3.0 * s12
-ds14/dx2 = -2.0 * s9 * s3 * s1 * s2 * a * s10 * s12 ^ 2.0 * s14 ^ 3.0 + 2.0 * s9 * s3 * s1 * s2 * a * s13 * s14 ^ 2.0
-ds14/db = -1.0 * s9 * s3 * x3 * s10 * s12 ^ 2.0 * s14 ^ 3.0 + s9 * s3 * x3 * s13 * s14 ^ 2.0
-ds14/dx3 = -1.0 * s9 * s3 * b * s10 * s12 ^ 2.0 * s14 ^ 3.0 + s9 * s3 * b * s13 * s14 ^ 2.0
-ds14/da = -1.0 * s9 * s3 * s1 ^ 2.0 * s10 * s12 ^ 2.0 * s14 ^ 3.0 + s9 * s3 * s1 ^ 2.0 * s13 * s14 ^ 2.0
-ds15/dx1 = 0.0
-ds15/dx2 = 2.0 * s16 * s1 * s2 * a
-ds15/db = s16 * x3
-ds15/dx3 = s16 * b
-ds15/da = s16 * s1 ^ 2.0
-ds16/dx1 = 0.0
-ds16/dx2 = 2.0 * s15 * s1 * s2 * a
-ds16/db = s15 * x3
-ds16/dx3 = s15 * b
-ds16/da = s15 * s1 ^ 2.0
+\begin{equation*}s_{1} = \text{ln}(x_{2})\end{equation*}
+\begin{equation*}s_{2} = \text{inv}(x_{2})\end{equation*}
+\begin{equation*}s_{3} = \text{cos}(a  s_{1} ^ {2} + b  x_{3})\end{equation*}
+\begin{equation*}s_{4} = \text{sin}(a  s_{1} ^ {2} + b  x_{3})\end{equation*}
+\begin{equation*}s_{5} = \text{sin}(s_{3})\end{equation*}
+\begin{equation*}s_{6} = \text{cos}(s_{3})\end{equation*}
+\begin{equation*}s_{7} = \text{Dv}(g ^ {2}, 1, (-1); x_{1})\end{equation*}
+\begin{equation*}s_{8} = \text{DV}(g ^ {2}, 1, (-1); x_{1})\end{equation*}
+\begin{equation*}s_{9} = \text{cos}(s_{4})\end{equation*}
+\begin{equation*}s_{10} = \text{sin}(s_{4})\end{equation*}
+\begin{equation*}s_{11} = \text{EK}(s_{10}, x_{1})\end{equation*}
+\begin{equation*}s_{12} = \text{EKs}(s_{10}, x_{1})\end{equation*}
+\begin{equation*}s_{13} = \text{EKc}(s_{10}, x_{1})\end{equation*}
+\begin{equation*}s_{14} = \text{EKi}(s_{10}, x_{1})\end{equation*}
+\begin{equation*}s_{15} = \text{ch}(a  s_{1} ^ {2} + b  x_{3})\end{equation*}
+\begin{equation*}s_{16} = \text{sh}(a  s_{1} ^ {2} + b  x_{3})\end{equation*}
+\begin{equation*}y_{1} = x_{3} ^ {3}  b  s_{1} ^ {4} + s_{4} ^ {5} + x_{3} ^ {3}  s_{5} + s_{7}\end{equation*}
+\begin{equation*}y_{2} = b  s_{1} ^ {4} + s_{4} ^ {5} + s_{5} + s_{7}\end{equation*}
+\begin{equation*}y_{3} = s_{3} ^ {4} + x_{2} ^ {2}  s_{9} + s_{11} ^ {2}\end{equation*}
+\begin{equation*}y_{4} = s_{3} ^ {4} + x_{2} ^ {2}  s_{9} + s_{11}\end{equation*}
+\begin{equation*}y_{5} = s_{16} ^ {5} + x_{1} ^ {2}  s_{15} ^ {2} + x_{1} ^ {2}  s_{4}\end{equation*}
+\begin{equation*}y_{6} = s_{16} ^ {5} + x_{1}  s_{15} ^ {2} + x_{1}  s_{4}\end{equation*}
+\begin{equation*}\frac{\partial s_{1}}{\partial b} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{1}}{\partial x_{3}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{1}}{\partial x_{2}} = s_{2}\end{equation*}
+\begin{equation*}\frac{\partial s_{1}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{1}}{\partial a} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{2}}{\partial b} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{2}}{\partial x_{3}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{2}}{\partial x_{2}} = (-1)  s_{2} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{2}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{2}}{\partial a} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{3}}{\partial b} = (-1)  s_{4}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{3}}{\partial x_{3}} = (-1)  s_{4}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{3}}{\partial x_{2}} = (-2)  s_{4}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{3}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{3}}{\partial a} = (-1)  s_{4}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{4}}{\partial b} = s_{3}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{4}}{\partial x_{3}} = s_{3}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{4}}{\partial x_{2}} = 2  s_{3}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{4}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{4}}{\partial a} = s_{3}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{5}}{\partial b} = (-1)  s_{6}  s_{4}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{5}}{\partial x_{3}} = (-1)  s_{6}  s_{4}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{5}}{\partial x_{2}} = (-2)  s_{6}  s_{4}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{5}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{5}}{\partial a} = (-1)  s_{6}  s_{4}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{6}}{\partial b} = s_{5}  s_{4}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{6}}{\partial x_{3}} = s_{5}  s_{4}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{6}}{\partial x_{2}} = 2  s_{5}  s_{4}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{6}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{6}}{\partial a} = s_{5}  s_{4}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{7}}{\partial b} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{7}}{\partial x_{3}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{7}}{\partial x_{2}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{7}}{\partial x_{1}} = s_{8}\end{equation*}
+\begin{equation*}\frac{\partial s_{7}}{\partial a} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{8}}{\partial b} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{8}}{\partial x_{3}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{8}}{\partial x_{2}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{8}}{\partial x_{1}} = (-1)  s_{7}  p_{1}  x_{1} ^ {2} + (-1)  s_{7}  p_{2}  x_{1} + (-1)  s_{7}  p_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{8}}{\partial a} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{9}}{\partial b} = (-1)  s_{10}  s_{3}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{9}}{\partial x_{3}} = (-1)  s_{10}  s_{3}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{9}}{\partial x_{2}} = (-2)  s_{10}  s_{3}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{9}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{9}}{\partial a} = (-1)  s_{10}  s_{3}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{10}}{\partial b} = s_{9}  s_{3}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{10}}{\partial x_{3}} = s_{9}  s_{3}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{10}}{\partial x_{2}} = 2  s_{9}  s_{3}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{10}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{10}}{\partial a} = s_{9}  s_{3}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{11}}{\partial b} = s_{12}  s_{14}  s_{9}  s_{3}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{11}}{\partial x_{3}} = s_{12}  s_{14}  s_{9}  s_{3}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{11}}{\partial x_{2}} = 2  s_{12}  s_{14}  s_{9}  s_{3}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{11}}{\partial x_{1}} = s_{14}\end{equation*}
+\begin{equation*}\frac{\partial s_{11}}{\partial a} = s_{12}  s_{14}  s_{9}  s_{3}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{12}}{\partial b} = s_{12}  s_{13}  s_{14}  s_{9}  s_{3}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{12}}{\partial x_{3}} = s_{12}  s_{13}  s_{14}  s_{9}  s_{3}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{12}}{\partial x_{2}} = 2  s_{12}  s_{13}  s_{14}  s_{9}  s_{3}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{12}}{\partial x_{1}} = s_{13}  s_{14}\end{equation*}
+\begin{equation*}\frac{\partial s_{12}}{\partial a} = s_{12}  s_{13}  s_{14}  s_{9}  s_{3}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{13}}{\partial b} = (-1)  s_{12} ^ {2}  s_{14}  s_{9}  s_{3}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{13}}{\partial x_{3}} = (-1)  s_{12} ^ {2}  s_{14}  s_{9}  s_{3}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{13}}{\partial x_{2}} = (-2)  s_{12} ^ {2}  s_{14}  s_{9}  s_{3}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{13}}{\partial x_{1}} = (-1)  s_{12}  s_{14}\end{equation*}
+\begin{equation*}\frac{\partial s_{13}}{\partial a} = (-1)  s_{12} ^ {2}  s_{14}  s_{9}  s_{3}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{14}}{\partial b} = (-1)  s_{9}  s_{3}  x_{3}  s_{10}  s_{12} ^ {2}  s_{14} ^ {3} + s_{9}  s_{3}  x_{3}  s_{13}  s_{14} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{14}}{\partial x_{3}} = (-1)  s_{9}  s_{3}  b  s_{10}  s_{12} ^ {2}  s_{14} ^ {3} + s_{9}  s_{3}  b  s_{13}  s_{14} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{14}}{\partial x_{2}} = (-2)  s_{9}  s_{3}  s_{1}  s_{2}  a  s_{10}  s_{12} ^ {2}  s_{14} ^ {3} + 2  s_{9}  s_{3}  s_{1}  s_{2}  a  s_{13}  s_{14} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{14}}{\partial x_{1}} = (-1)  s_{10}  s_{14} ^ {3}  s_{12}\end{equation*}
+\begin{equation*}\frac{\partial s_{14}}{\partial a} = (-1)  s_{9}  s_{3}  s_{1} ^ {2}  s_{10}  s_{12} ^ {2}  s_{14} ^ {3} + s_{9}  s_{3}  s_{1} ^ {2}  s_{13}  s_{14} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{15}}{\partial b} = s_{16}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{15}}{\partial x_{3}} = s_{16}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{15}}{\partial x_{2}} = 2  s_{16}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{15}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{15}}{\partial a} = s_{16}  s_{1} ^ {2}\end{equation*}
+\begin{equation*}\frac{\partial s_{16}}{\partial b} = s_{15}  x_{3}\end{equation*}
+\begin{equation*}\frac{\partial s_{16}}{\partial x_{3}} = s_{15}  b\end{equation*}
+\begin{equation*}\frac{\partial s_{16}}{\partial x_{2}} = 2  s_{15}  s_{1}  s_{2}  a\end{equation*}
+\begin{equation*}\frac{\partial s_{16}}{\partial x_{1}} = 0\end{equation*}
+\begin{equation*}\frac{\partial s_{16}}{\partial a} = s_{15}  s_{1} ^ {2}\end{equation*}
+\end{document}
