@@ -6,6 +6,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{breqn}
 \begin{document}
 Input system:
 
@@ -13,7 +14,8 @@ Dependent variables:$x$
 
 Independent variables:$t$
 
-\begin{equation*}\frac{dx}{dt} = a  x  (x - L)  \text{inv}(N + x)\end{equation*}
+Equations:
+\begin{dmath*}\frac{dx}{dt} = a  x  (x - L)  \text{inv}(N + x)\end{dmath*}
 =================
 
 Result:
@@ -23,7 +25,8 @@ Dependent variables:$s_{1}, x$
 Independent variables:$t$
 
 Additional variables:
-\begin{equation*}s_{1} = \text{inv}(N + x)\end{equation*}
-\begin{equation*}\frac{dx}{dt} = s_{1}  a  x ^ {2} + (-1)  s_{1}  a  x  L\end{equation*}
-\begin{equation*}\frac{ds_{1}}{dt} = (-1)  s_{1} ^ {3}  a  x ^ {2} + s_{1} ^ {3}  a  x  L\end{equation*}
+\begin{dmath*}s_{1} = \text{inv}(N + x)\end{dmath*}
+Equations:
+\begin{dmath*}\frac{dx}{dt} = s_{1}  a  x ^ {2} + (-1)  s_{1}  a  x  L\end{dmath*}
+\begin{dmath*}\frac{ds_{1}}{dt} = (-1)  s_{1} ^ {3}  a  x ^ {2} + s_{1} ^ {3}  a  x  L\end{dmath*}
 \end{document}

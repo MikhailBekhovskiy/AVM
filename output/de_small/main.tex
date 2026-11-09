@@ -6,34 +6,37 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{breqn}
 \begin{document}
 Input system:
 
 Dependent variables:$x_{1}$
 
-Independent variables:$t_{1}, t_{3}, t_{2}$
+Independent variables:$t_{1}, t_{2}, t_{3}$
 
-\begin{equation*}\frac{\partial x_{1}}{\partial t_{1}} = x_{1}  \text{sin}(x_{1})\end{equation*}
-\begin{equation*}\frac{\partial x_{1}}{\partial t_{2}} = x_{1}\end{equation*}
-\begin{equation*}\frac{\partial x_{1}}{\partial t_{3}} = 5\end{equation*}
+Equations:
+\begin{dmath*}\frac{\partial x_{1}}{\partial t_{1}} = x_{1}  \text{sin}(x_{1})\end{dmath*}
+\begin{dmath*}\frac{\partial x_{1}}{\partial t_{2}} = x_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial x_{1}}{\partial t_{3}} = 5\end{dmath*}
 =================
 
 Result:
 
-Dependent variables:$s_{2}, x_{1}, s_{1}$
+Dependent variables:$s_{1}, x_{1}, s_{2}$
 
-Independent variables:$t_{1}, t_{3}, t_{2}$
+Independent variables:$t_{1}, t_{2}, t_{3}$
 
 Additional variables:
-\begin{equation*}s_{1} = \text{sin}(x_{1})\end{equation*}
-\begin{equation*}s_{2} = \text{cos}(x_{1})\end{equation*}
-\begin{equation*}\frac{\partial x_{1}}{\partial t_{1}} = x_{1}  s_{1}\end{equation*}
-\begin{equation*}\frac{\partial x_{1}}{\partial t_{2}} = x_{1}\end{equation*}
-\begin{equation*}\frac{\partial x_{1}}{\partial t_{3}} = 5\end{equation*}
-\begin{equation*}\frac{\partial s_{1}}{\partial t_{1}} = s_{2}  x_{1}  s_{1}\end{equation*}
-\begin{equation*}\frac{\partial s_{1}}{\partial t_{3}} = 5  s_{2}\end{equation*}
-\begin{equation*}\frac{\partial s_{1}}{\partial t_{2}} = s_{2}  x_{1}\end{equation*}
-\begin{equation*}\frac{\partial s_{2}}{\partial t_{1}} = (-1)  s_{1} ^ {2}  x_{1}\end{equation*}
-\begin{equation*}\frac{\partial s_{2}}{\partial t_{3}} = (-5)  s_{1}\end{equation*}
-\begin{equation*}\frac{\partial s_{2}}{\partial t_{2}} = (-1)  s_{1}  x_{1}\end{equation*}
+\begin{dmath*}s_{1} = \text{sin}(x_{1})\end{dmath*}
+\begin{dmath*}s_{2} = \text{cos}(x_{1})\end{dmath*}
+Equations:
+\begin{dmath*}\frac{\partial x_{1}}{\partial t_{1}} = x_{1}  s_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial x_{1}}{\partial t_{2}} = x_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial x_{1}}{\partial t_{3}} = 5\end{dmath*}
+\begin{dmath*}\frac{\partial s_{1}}{\partial t_{1}} = s_{2}  x_{1}  s_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial s_{1}}{\partial t_{2}} = s_{2}  x_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial s_{1}}{\partial t_{3}} = 5  s_{2}\end{dmath*}
+\begin{dmath*}\frac{\partial s_{2}}{\partial t_{1}} = (-1)  s_{1} ^ {2}  x_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial s_{2}}{\partial t_{2}} = (-1)  s_{1}  x_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial s_{2}}{\partial t_{3}} = (-5)  s_{1}\end{dmath*}
 \end{document}

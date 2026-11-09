@@ -14,6 +14,7 @@ PREAMBLE = '''\\documentclass[10pt,a4paper]{article}
 \\usepackage{amsfonts}
 \\usepackage{amssymb}
 \\usepackage{graphicx}
+\\usepackage{breqn}
 \\begin{document}\n'''
 FIN = '\\end{document}'
 
@@ -158,35 +159,39 @@ class System():
             res += 'Additional variables:\n'
             for av in self.add_vars:
                 if latex:
-                    adv = '\\begin{equation*}' + var_name2latex(av)
+                    adv = '\\begin{dmath*}' + var_name2latex(av)
                 else:
                     adv = av
                 res += f'{adv} = {self.add_vars[av].__str__(latex)}'
                 if latex:
-                    res += '\\end{equation*}'
+                    res += '\\end{dmath*}'
                 res += '\n'
-        for mv in self.fs:
-            if not latex:
-                lhs = mv
-            else:
-                lhs = '\\begin{equation*}' + var_name2latex(mv)
-            res += f'{lhs} = ' + self.fs[mv].__str__(latex)
-            if latex:
-                res += '\\end{equation*}'
-            res += '\n'
-        for mv in self.eqs:
-            for sv in self.eqs[mv]:
+        if len(self.fs) > 0:
+            res += 'Functions:\n'
+            for mv in self.fs:
                 if not latex:
-                    lhs = f'd{mv}/d{sv}'
+                    lhs = mv
                 else:
-                    if len(self.ind_vars) == 1:
-                        lhs = '\\begin{equation*}\\frac{d' + var_name2latex(mv)+'}{d' + var_name2latex(sv) + '}'
-                    else:
-                        lhs = '\\begin{equation*}\\frac{\\partial ' + var_name2latex(mv)+'}{\\partial ' + var_name2latex(sv) + '}'
-                res += f'{lhs} = ' + self.eqs[mv][sv].__str__(latex)
+                    lhs = '\\begin{dmath*}' + var_name2latex(mv)
+                res += f'{lhs} = ' + self.fs[mv].__str__(latex)
                 if latex:
-                    res += '\\end{equation*}'
+                    res += '\\end{dmath*}'
                 res += '\n'
+        if len(self.eqs) > 0:
+            res += 'Equations:\n'
+            for mv in self.eqs:
+                for sv in self.eqs[mv]:
+                    if not latex:
+                        lhs = f'd{mv}/d{sv}'
+                    else:
+                        if len(self.ind_vars) == 1:
+                            lhs = '\\begin{dmath*}\\frac{d' + var_name2latex(mv)+'}{d' + var_name2latex(sv) + '}'
+                        else:
+                            lhs = '\\begin{dmath*}\\frac{\\partial ' + var_name2latex(mv)+'}{\\partial ' + var_name2latex(sv) + '}'
+                    res += f'{lhs} = ' + self.eqs[mv][sv].__str__(latex)
+                    if latex:
+                        res += '\\end{dmath*}'
+                    res += '\n'
         return res
     
     # automatic rhs var detector
