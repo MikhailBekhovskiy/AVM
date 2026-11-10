@@ -109,7 +109,7 @@ class Node():
     name: str
     value: float
     children: list["Node"]
-    params: list[str]
+    params: list["Node"]
     # initialize by name or numeric value; parametres are stored for function nodes
     def __init__(self, name: str='num', val: float=0., children:list["Node"]=[], params:list["Node"]=[]):
         self.name = name
@@ -118,6 +118,12 @@ class Node():
         self.parameters = params
 
     def __str__(self, latex=False):
+        if latex:
+            leftp = '\\left('
+            rightp = '\\right)'
+        else:
+            leftp = '('
+            rightp = ')'
         if self.name == 'num':
             n = self.value
             if n - float(int(n)) > 0.:
@@ -125,7 +131,7 @@ class Node():
             else:
                 res = str(int(n))
             if n < 0:
-                res = '(' + res + ')'
+                res = leftp + res + rightp
             return res
         elif len(self.kids) == 0:
             if not latex:
@@ -136,10 +142,10 @@ class Node():
         elif self.name in binary_ops and len(self.kids) == 2:
             l = self.kids[0].__str__(latex)
             if type(self.kids[0]) is Node and self.kids[0].name in priorities and priorities[self.name] > priorities[self.kids[0].name]:
-                l = '(' + l + ')'
+                l = leftp + l + rightp
             r = self.kids[1].__str__(latex)
             if type(self.kids[1]) is Node and self.kids[1].name in priorities and (priorities[self.name] > priorities[self.kids[1].name] or (self.name == '-' and priorities[self.name] >= priorities[self.kids[1].name]) or self.kids[1].name == 'u-'):
-                r = '(' + r + ')'
+                r = leftp + r + rightp
             if self.name == '^' and self.kids[1].name == 'num' and latex:
                 r = '{' + r + '}'
             if self.name == '*' and latex:
@@ -154,12 +160,12 @@ class Node():
             else:
                 nam = self.name
             if type(self.kids[0]) is Node and self.kids[0].name in priorities and priorities[self.name] >= priorities[self.kids[0].name]:
-                s = '(' + s + ')'
+                s = leftp + s + rightp
             return nam + s
         else:
             if latex:
-                parl = '('
-                parr = ')'
+                parl = leftp
+                parr = rightp
                 name = '\\text{' + self.name + '}'
             else:
                 parl = '['

@@ -10,33 +10,33 @@
 \begin{document}
 Input system:
 
-Dependent variables:$x_{1}$
+Dependent variables:$x$
 
-Independent variables:$t_{1}, t_{2}, t_{3}$
+Independent variables:$t_{2}, t_{1}, t_{3}$
 
 Equations:
-\begin{dmath*}\frac{\partial x_{1}}{\partial t_{1}} = x_{1}  \text{sin}(x_{1})\end{dmath*}
-\begin{dmath*}\frac{\partial x_{1}}{\partial t_{2}} = x_{1}\end{dmath*}
-\begin{dmath*}\frac{\partial x_{1}}{\partial t_{3}} = 5\end{dmath*}
+\begin{dmath*}\frac{\partial x}{\partial t_{1}} = x  \text{sin}\left(x\right)\end{dmath*}
+\begin{dmath*}\frac{\partial x}{\partial t_{2}} = x\end{dmath*}
+\begin{dmath*}\frac{\partial x}{\partial t_{3}} = 5\end{dmath*}
 =================
 
 Result:
 
-Dependent variables:$s_{1}, x_{1}, s_{2}$
+Dependent variables:$s_{1}, s_{2}, x$
 
-Independent variables:$t_{1}, t_{2}, t_{3}$
+Independent variables:$t_{2}, t_{1}, t_{3}$
 
 Additional variables:
-\begin{dmath*}s_{1} = \text{sin}(x_{1})\end{dmath*}
-\begin{dmath*}s_{2} = \text{cos}(x_{1})\end{dmath*}
+\begin{dmath*}s_{1} = \text{sin}\left(x\right)\end{dmath*}
+\begin{dmath*}s_{2} = \text{cos}\left(x\right)\end{dmath*}
 Equations:
-\begin{dmath*}\frac{\partial x_{1}}{\partial t_{1}} = x_{1}  s_{1}\end{dmath*}
-\begin{dmath*}\frac{\partial x_{1}}{\partial t_{2}} = x_{1}\end{dmath*}
-\begin{dmath*}\frac{\partial x_{1}}{\partial t_{3}} = 5\end{dmath*}
-\begin{dmath*}\frac{\partial s_{1}}{\partial t_{1}} = s_{2}  x_{1}  s_{1}\end{dmath*}
-\begin{dmath*}\frac{\partial s_{1}}{\partial t_{2}} = s_{2}  x_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial x}{\partial t_{1}} = x  s_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial x}{\partial t_{2}} = x\end{dmath*}
+\begin{dmath*}\frac{\partial x}{\partial t_{3}} = 5\end{dmath*}
+\begin{dmath*}\frac{\partial s_{1}}{\partial t_{2}} = s_{2}  x\end{dmath*}
+\begin{dmath*}\frac{\partial s_{1}}{\partial t_{1}} = s_{2}  x  s_{1}\end{dmath*}
 \begin{dmath*}\frac{\partial s_{1}}{\partial t_{3}} = 5  s_{2}\end{dmath*}
-\begin{dmath*}\frac{\partial s_{2}}{\partial t_{1}} = (-1)  s_{1} ^ {2}  x_{1}\end{dmath*}
-\begin{dmath*}\frac{\partial s_{2}}{\partial t_{2}} = (-1)  s_{1}  x_{1}\end{dmath*}
-\begin{dmath*}\frac{\partial s_{2}}{\partial t_{3}} = (-5)  s_{1}\end{dmath*}
+\begin{dmath*}\frac{\partial s_{2}}{\partial t_{2}} = \left(-1\right)  s_{1}  x\end{dmath*}
+\begin{dmath*}\frac{\partial s_{2}}{\partial t_{1}} = \left(-1\right)  s_{1} ^ {2}  x\end{dmath*}
+\begin{dmath*}\frac{\partial s_{2}}{\partial t_{3}} = \left(-5\right)  s_{1}\end{dmath*}
 \end{document}

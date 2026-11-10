@@ -1,3 +1,3 @@
-dx1/dt1 = x1*sin[x1]
-dx1/dt2 = x1
-dx1/dt3 = 5
+dx/dt1 = x*sin[x]
+dx/dt2 = x
+dx/dt3 = 5
