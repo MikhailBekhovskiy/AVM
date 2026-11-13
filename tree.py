@@ -133,6 +133,10 @@ class Node():
             if n < 0:
                 res = leftp + res + rightp
             return res
+        elif self.name == 'inv' and latex:
+            return '\\frac{1}{' + self.kids[0].__str__(latex) + '}'
+        elif self.name == 'isqrt' and latex:
+            return '\\frac{1}{\\sqrt{' + self.kids[0].__str__(latex) + '}}'
         elif len(self.kids) == 0:
             if not latex:
                 name = self.name
@@ -147,7 +151,23 @@ class Node():
             if type(self.kids[1]) is Node and self.kids[1].name in priorities and (priorities[self.name] > priorities[self.kids[1].name] or (self.name == '-' and priorities[self.name] >= priorities[self.kids[1].name]) or self.kids[1].name == 'u-'):
                 r = leftp + r + rightp
             if self.name == '^' and self.kids[1].name == 'num' and latex:
-                r = '{' + r + '}'
+                if self.kids[0].name not in binary_ops.union(unary_ops.union({'isqrt', 'inv'})) and len(self.kids[0].kids) > 0:
+                    funcname = self.kids[0].name
+                    power = self.kids[1].__str__(latex)
+                    params = ''
+                    if self.kids[0].parameters != []:
+                        for p in self.kids[0].parameters:
+                            params += p.__str__(latex) + ', '
+                        params = params[:-2] + '; '
+                    args = ''
+                    for k in self.kids[0].kids:
+                        args += k.__str__(latex) + ', '
+                        args = args[:-2]
+                    return '\\text{' + funcname + '}^{' + power + '}' + leftp + params + args + rightp
+                else:
+                    r = '{' + r + '}'
+                if latex and self.kids[0].name in {'inv', 'isqrt'}:
+                    l = leftp + l + rightp
             if self.name == '*' and latex:
                 name = ''
             else:
