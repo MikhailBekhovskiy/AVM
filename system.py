@@ -130,7 +130,7 @@ class System():
             for dv in self.dep_vars:
                 dvs += var_name2latex(dv) + ', '
             dvs = dvs[:-2]
-        res = 'Dependent variables:$' + dvs + '$\n\n'
+        res = '\\textit{Dependent variables:}\n\n$' + dvs + '$\n\n'
         if not latex:
             ivs = str(self.ind_vars)
         else:
@@ -138,9 +138,9 @@ class System():
             for iv in self.ind_vars:
                 ivs += var_name2latex(iv) + ', '
             ivs = ivs[:-2]
-        res += 'Independent variables:$' + ivs + '$\n\n'
+        res += '\\textit{Independent variables:}\n\n$' + ivs + '$\n\n'
         if len(self.add_vars) > 0:
-            res += 'Additional variables:\n'
+            res += '\\textit{Additional variables:}\n'
             for av in self.add_vars:
                 if latex:
                     adv = '\\begin{dmath*}' + var_name2latex(av)
@@ -151,7 +151,7 @@ class System():
                     res += '\\end{dmath*}'
                 res += '\n'
         if len(self.fs) > 0:
-            res += 'Functions:\n'
+            res += '\\textit{Functions:}\n'
             for mv in self.fs:
                 if not latex:
                     lhs = mv
@@ -162,7 +162,7 @@ class System():
                     res += '\\end{dmath*}'
                 res += '\n'
         if len(self.eqs) > 0:
-            res += 'Equations:\n'
+            res += '\\textit{Equations:}\n'
             for mv in self.eqs:
                 for sv in self.eqs[mv]:
                     if not latex:

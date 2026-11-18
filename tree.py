@@ -13,6 +13,26 @@ def var_name2latex(v: str) -> str:
         res += '_{' + v[1:] + '}'
     return res
 
+def func_name2latex(f: str, pars: list[str], args: list[str]) -> str:
+    res = ''
+    if f == 'inv':
+        return '\\frac{1}{'+ var_name2latex(args[0])+'}'
+    if f == 'isqrt':
+        return '\\frac{1}{\\sqrt{' + var_name2latex(args[0]) + '}}'
+    if f == 'sqrt':
+        return '\\sqrt{' + var_name2latex(args[0]) + '}'
+    else:
+        res += '\\text{' + f + '}('
+        if len(pars) > 0:
+            for p in pars:
+                res += var_name2latex(p) + ','
+            res = res[:-1] + ';'
+        for a in args:
+            res += var_name2latex(a) + ','
+        res = res[:-1] + ')'
+        return res
+
+
 def factorial(n: int) -> int:
     if n >= 0:
         if n == 0 or n == 1:
