@@ -62,7 +62,7 @@ def print_lib(path: str=PATH+'/library_print'):
                     args = ['t']
                 else:
                     args = [f't{j}' for j in range(1, funcs[func][2] + 1)]
-                f.write('$' + func_name2latex(func, pars, args) + ' = ' + var_name2latex(funcs[func][0]) + '$,')
+                f.write('$' + func_name2latex(func, pars, args) + ' = ' + var_name2latex(funcs[func][0]) + '$\n\n')
             f.write('\n\n')
             f.write(s.__str__(True))
             f.write('\n')
